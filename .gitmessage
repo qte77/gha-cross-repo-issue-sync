@@ -1,0 +1,11 @@
+# <type>(<scope>): <subject>
+#
+# Types: feat, fix, docs, chore, refactor, test, ci, style
+# Scope: optional, e.g. sync, action, infra
+# Subject: imperative, lowercase, no period
+#
+# Examples:
+#   feat(sync): add bidirectional label sync
+#   fix(common): handle empty issue body
+#   docs: update README usage examples
+#   chore(ci): add codeql workflow

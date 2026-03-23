@@ -1,0 +1,90 @@
+name: Bump and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  SKIP_PR_HINT: '[skip ci bump]'
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install bump-my-version
+        run: pip install bump-my-version
+
+      - name: Configure git
+        run: |
+          git config user.name "bump-my-version"
+          git config user.email "bump-my-version@gha"
+
+      - name: Bump version
+        id: bump
+        env:
+          BUMP_TYPE: ${{ inputs.bump }}
+        run: |
+          bump-my-version bump "$BUMP_TYPE" --commit --tag
+          echo "tag=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
+          echo "branch=bump-${{ github.run_number }}-${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: Create branch and PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ steps.bump.outputs.branch }}
+          TAG: ${{ steps.bump.outputs.tag }}
+        run: |
+          git checkout -b "$BRANCH"
+          git push origin "$BRANCH" --tags
+
+          gh pr create \
+            --title "$SKIP_PR_HINT $TAG" \
+            --body "Automated version bump to $TAG" \
+            --base main \
+            --head "$BRANCH"
+
+      - name: Create release and update floating tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.bump.outputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh release create "$TAG" --generate-notes --repo "$REPO"
+
+          MAJOR="${TAG%%.*}"
+          SHA=$(gh api "repos/$REPO/git/refs/tags/$TAG" --jq '.object.sha')
+          gh api "repos/$REPO/git/refs/tags/$MAJOR" \
+            -X PATCH -f sha="$SHA" -F force=true 2>/dev/null \
+          || gh api "repos/$REPO/git/refs" \
+            -f ref="refs/tags/$MAJOR" -f sha="$SHA"
+
+      - name: Cleanup on failure
+        if: failure() || cancelled()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLEANUP_BRANCH: ${{ steps.bump.outputs.branch }}
+          CLEANUP_TAG: ${{ steps.bump.outputs.tag }}
+          CLEANUP_PR_NUMBER: ''
+        run: |
+          chmod +x .github/scripts/delete_branch_pr_tag.sh
+          .github/scripts/delete_branch_pr_tag.sh
