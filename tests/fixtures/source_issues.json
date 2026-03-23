@@ -1,0 +1,5 @@
+[
+  {"number":1,"title":"Fix login bug","state":"OPEN","labels":[{"name":"bug"}],"assignees":[{"login":"octocat"}]},
+  {"number":2,"title":"Add dark mode","state":"OPEN","labels":[],"assignees":[]},
+  {"number":3,"title":"Old feature","state":"CLOSED","labels":[{"name":"done"}],"assignees":[]}
+]
