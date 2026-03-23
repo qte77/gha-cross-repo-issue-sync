@@ -1,0 +1,170 @@
+name: 'Cross-Repo Issue Sync'
+description: 'Bidirectional GitHub issue sync across repos with mirror issues, markdown generation, and Projects board aggregation.'
+author: 'qte77'
+
+branding:
+  icon: 'refresh-cw'
+  color: 'blue'
+
+inputs:
+  direction:
+    description: 'Sync direction: forward, reverse, or both'
+    required: true
+  tracker_repo:
+    description: 'Tracker repo (e.g. owner/.github-private-project-tracker)'
+    required: true
+  repos_file:
+    description: 'Path to repos.txt (one repo name per line). Used for forward sync.'
+    required: false
+    default: 'repos.txt'
+  repos:
+    description: 'Comma-separated repo list (alternative to repos_file). Used for forward sync.'
+    required: false
+  owner:
+    description: 'GitHub owner/org for tracked repos'
+    required: false
+    default: ${{ github.repository_owner }}
+  token:
+    description: 'GitHub token with Issues read+write on all repos'
+    required: true
+    default: ${{ github.token }}
+  project_id:
+    description: 'GitHub Projects board ID. If set, adds issues to the board.'
+    required: false
+  generate_markdown:
+    description: 'Generate TODO.md and DONE.md in the working directory'
+    required: false
+    default: 'true'
+  dry_run:
+    description: 'Preview without making changes'
+    required: false
+    default: 'false'
+  event_action:
+    description: 'Issue event action (for reverse sync). Auto-set from github.event.action.'
+    required: false
+    default: ${{ github.event.action }}
+  event_issue_number:
+    description: 'Issue number that triggered the event (for reverse sync).'
+    required: false
+    default: ''
+  event_label:
+    description: 'Label name from the event (for labeled/unlabeled).'
+    required: false
+    default: ''
+  event_assignee:
+    description: 'Assignee login from the event (for assigned/unassigned).'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Forward sync
+      if: inputs.direction == 'forward' || inputs.direction == 'both'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        TRACKER_REPO: ${{ inputs.tracker_repo }}
+        OWNER: ${{ inputs.owner }}
+        DRY_RUN: ${{ inputs.dry_run }}
+        REPOS_FILE: ${{ inputs.repos_file }}
+        REPOS_CSV: ${{ inputs.repos }}
+        GENERATE_MARKDOWN: ${{ inputs.generate_markdown }}
+        PROJECT_ID: ${{ inputs.project_id }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        source "$ACTION_PATH/scripts/common.sh"
+        source "$ACTION_PATH/scripts/sync-forward.sh"
+
+        # Build repo list
+        repos=()
+        if [[ -n "$REPOS_CSV" ]]; then
+          IFS=',' read -ra repos <<< "$REPOS_CSV"
+        elif [[ -f "$REPOS_FILE" ]]; then
+          mapfile -t repos < <(grep -v '^\s*#' "$REPOS_FILE" | grep -v '^\s*$' | xargs -L1)
+        fi
+
+        if [[ ${#repos[@]} -eq 0 ]]; then
+          echo "::warning::No repos to sync. Set repos_file or repos input."
+          exit 0
+        fi
+
+        # Sync each repo
+        for repo in "${repos[@]}"; do
+          echo "--- $repo ---"
+          sync_repo "$repo"
+        done
+
+        # Generate markdown
+        if [[ "$GENERATE_MARKDOWN" == "true" ]]; then
+          # Fetch all tracker issues for markdown (mirrors + tracker-only)
+          tracker_json="$(gh issue list -R "$TRACKER_REPO" --state all --limit 500 \
+            --json number,title,body,state 2>/dev/null || echo "[]")"
+
+          for repo in "${repos[@]}"; do
+            repo_json="$(gh issue list -R "$OWNER/$repo" --state all --limit 200 \
+              --json number,title,state 2>/dev/null || echo "[]")"
+            generate_markdown "." "$repo" "$repo_json"
+          done
+
+          # Tracker-only issues
+          generate_markdown "." "" "$tracker_json"
+        fi
+
+        echo "Forward sync complete."
+
+    - name: Reverse sync
+      if: inputs.direction == 'reverse' || inputs.direction == 'both'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        TRACKER_REPO: ${{ inputs.tracker_repo }}
+        DRY_RUN: ${{ inputs.dry_run }}
+        EVENT_ACTION: ${{ inputs.event_action }}
+        EVENT_ISSUE_NUMBER: ${{ inputs.event_issue_number }}
+        EVENT_LABEL: ${{ inputs.event_label }}
+        EVENT_ASSIGNEE: ${{ inputs.event_assignee }}
+        GITHUB_ACTOR: ${{ github.actor }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        source "$ACTION_PATH/scripts/common.sh"
+        source "$ACTION_PATH/scripts/sync-back.sh"
+
+        # Loop guard
+        if is_loop "$GITHUB_ACTOR" ""; then
+          echo "Skipping: event from bot actor ($GITHUB_ACTOR)"
+          exit 0
+        fi
+
+        # Get issue body to extract source ref
+        issue_num="${EVENT_ISSUE_NUMBER:-${{ github.event.issue.number }}}"
+        if [[ -z "$issue_num" ]]; then
+          echo "::warning::No issue number in event. Skipping reverse sync."
+          exit 0
+        fi
+
+        issue_body="$(gh issue view "$issue_num" -R "$TRACKER_REPO" --json body --jq '.body' 2>/dev/null || echo "")"
+        source_ref="$(parse_source_ref "$issue_body")"
+
+        if [[ -z "$source_ref" ]]; then
+          echo "Tracker-only issue #$issue_num. Skipping reverse sync."
+          exit 0
+        fi
+
+        repo="$(_issue_repo "$source_ref")"
+        title="${{ github.event.issue.title }}"
+
+        # Strip [repo] prefix from mirror title for edited events
+        if [[ "$EVENT_ACTION" == "edited" ]]; then
+          title="$(echo "$title" | sed 's/^\[[^]]*\] //')"
+        fi
+
+        # Map event action
+        action="$EVENT_ACTION"
+        [[ "$action" == "created" ]] && action="comment_created"
+
+        comment="${{ github.event.comment.body }}"
+
+        dispatch_event "$action" "$source_ref" "$repo" "$EVENT_LABEL" "$title" "$EVENT_ASSIGNEE" "$comment"
+
+        echo "Reverse sync complete for $source_ref ($action)."
