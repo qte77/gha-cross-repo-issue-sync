@@ -1,0 +1,5 @@
+[
+  {"number":10,"title":"[test-repo] Fix login bug","body":"Source: qte77/test-repo#1","state":"OPEN","labels":[{"name":"bug"},{"name":"test-repo"}],"assignees":[{"login":"octocat"}]},
+  {"number":11,"title":"[test-repo] Old feature","body":"Source: qte77/test-repo#3","state":"OPEN","labels":[],"assignees":[]},
+  {"number":20,"title":"Private planning task","body":"Internal tracker task","state":"OPEN","labels":[],"assignees":[]}
+]
