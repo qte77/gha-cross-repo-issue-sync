@@ -9,14 +9,14 @@ setup() {
   export TMPDIR="${BATS_TMPDIR:-/tmp/claude-1000/bats-tmp}"
 }
 
-# --- action.yml ---
+# --- action.yaml ---
 
-@test "action.yml exists and has required branding fields" {
-  [ -f "$REPO_ROOT/action.yml" ]
-  grep -q "^name:" "$REPO_ROOT/action.yml"
-  grep -q "^description:" "$REPO_ROOT/action.yml"
-  grep -q "icon:" "$REPO_ROOT/action.yml"
-  grep -q "color:" "$REPO_ROOT/action.yml"
+@test "action.yaml exists and has required branding fields" {
+  [ -f "$REPO_ROOT/action.yaml" ]
+  grep -q "^name:" "$REPO_ROOT/action.yaml"
+  grep -q "^description:" "$REPO_ROOT/action.yaml"
+  grep -q "icon:" "$REPO_ROOT/action.yaml"
+  grep -q "color:" "$REPO_ROOT/action.yaml"
 }
 
 # --- dependabot ---
