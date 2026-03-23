@@ -19,6 +19,13 @@ setup() {
   grep -q "color:" "$REPO_ROOT/action.yaml"
 }
 
+@test "action.yaml unsets GITHUB_TOKEN so PAT takes precedence" {
+  # gh CLI resolves GITHUB_TOKEN > GH_TOKEN; must unset in GHA
+  local count
+  count="$(grep -c "GITHUB_TOKEN: ''" "$REPO_ROOT/action.yaml")"
+  [ "$count" -eq 2 ]
+}
+
 # --- dependabot ---
 
 @test "dependabot.yml exists and covers github-actions ecosystem" {

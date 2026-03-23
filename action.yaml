@@ -63,6 +63,7 @@ runs:
       if: inputs.direction == 'forward' || inputs.direction == 'both'
       shell: bash
       env:
+        GITHUB_TOKEN: ''
         GH_TOKEN: ${{ inputs.token }}
         TRACKER_REPO: ${{ inputs.tracker_repo }}
         OWNER: ${{ inputs.owner }}
@@ -117,6 +118,7 @@ runs:
       if: inputs.direction == 'reverse' || inputs.direction == 'both'
       shell: bash
       env:
+        GITHUB_TOKEN: ''
         GH_TOKEN: ${{ inputs.token }}
         TRACKER_REPO: ${{ inputs.tracker_repo }}
         DRY_RUN: ${{ inputs.dry_run }}
