@@ -125,6 +125,9 @@ runs:
         EVENT_LABEL: ${{ inputs.event_label }}
         EVENT_ASSIGNEE: ${{ inputs.event_assignee }}
         GITHUB_ACTOR: ${{ github.actor }}
+        EVENT_ISSUE_NUMBER_FALLBACK: ${{ github.event.issue.number }}
+        EVENT_TITLE: ${{ github.event.issue.title }}
+        EVENT_COMMENT: ${{ github.event.comment.body }}
         ACTION_PATH: ${{ github.action_path }}
       run: |
         source "$ACTION_PATH/scripts/common.sh"
@@ -137,7 +140,7 @@ runs:
         fi
 
         # Get issue body to extract source ref
-        issue_num="${EVENT_ISSUE_NUMBER:-${{ github.event.issue.number }}}"
+        issue_num="${EVENT_ISSUE_NUMBER:-$EVENT_ISSUE_NUMBER_FALLBACK}"
         if [[ -z "$issue_num" ]]; then
           echo "::warning::No issue number in event. Skipping reverse sync."
           exit 0
@@ -152,7 +155,7 @@ runs:
         fi
 
         repo="$(_issue_repo "$source_ref")"
-        title="${{ github.event.issue.title }}"
+        title="$EVENT_TITLE"
 
         # Strip [repo] prefix from mirror title for edited events
         if [[ "$EVENT_ACTION" == "edited" ]]; then
@@ -163,7 +166,7 @@ runs:
         action="$EVENT_ACTION"
         [[ "$action" == "created" ]] && action="comment_created"
 
-        comment="${{ github.event.comment.body }}"
+        comment="$EVENT_COMMENT"
 
         dispatch_event "$action" "$source_ref" "$repo" "$EVENT_LABEL" "$title" "$EVENT_ASSIGNEE" "$comment"
 
