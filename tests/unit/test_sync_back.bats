@@ -139,3 +139,12 @@ gh_calls() {
   DRY_RUN=true dispatch_event "closed" "qte77/test-repo#1" "qte77/test-repo" "" "" ""
   [ ! -f "$GH_MOCK_LOG" ] || [ ! -s "$GH_MOCK_LOG" ]
 }
+
+# --- Guard: unknown action ---
+
+@test "dispatch_event prints error for unknown action" {
+  run dispatch_event "invalid_action" "qte77/test-repo#1" "qte77/test-repo" "" "" ""
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q "Unknown action: invalid_action"
+  [ ! -f "$GH_MOCK_LOG" ] || [ ! -s "$GH_MOCK_LOG" ]
+}

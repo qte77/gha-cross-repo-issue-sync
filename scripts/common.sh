@@ -4,7 +4,7 @@
 # Parse "Source: owner/repo#N" from issue body. Returns the ref or empty.
 parse_source_ref() {
   local body="$1"
-  echo -e "$body" | grep -oP '(?<=Source:\s{0,10})\S+' | head -1
+  echo -e "$body" | sed -n 's/^Source:[[:space:]]*\([^[:space:]]*\).*/\1/p' | head -1
 }
 
 # Extract a component from a source ref (owner/repo#N).
