@@ -6,6 +6,6 @@ tag_name = "v{new_version}"
 message = "bump: {current_version} → {new_version}"
 
 [[tool.bumpversion.files]]
-filename = "action.yml"
+filename = "action.yaml"
 search = "# version: {current_version}"
 replace = "# version: {new_version}"
