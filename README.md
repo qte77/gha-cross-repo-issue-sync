@@ -1,0 +1,1 @@
+# gha-cross-repo-issue-sync
