@@ -1,17 +1,33 @@
 ---
 name: Bug report
-about: Report a sync issue or unexpected behavior
+about: Report a problem
+title: ''
 labels: bug
+assignees: ''
 ---
 
-**Describe the bug**
+## Description
 
-**Sync direction:** forward / reverse / both
+<!-- A clear and concise description of the bug -->
 
-**Expected behavior**
+## Steps to Reproduce
 
-**Actual behavior**
+1. Run `...`
+2. ...
 
-**Repo config** (repos.txt or repos input):
+## Expected Behavior
 
-**Logs** (with `dry_run: true` if possible):
+<!-- What you expected to happen -->
+
+## Actual Behavior
+
+<!-- What actually happened. Include error traces if applicable -->
+
+## Environment
+
+- OS/Runner:
+- Version:
+
+## Additional Context
+
+<!-- Screenshots, logs, related issues, etc. -->
