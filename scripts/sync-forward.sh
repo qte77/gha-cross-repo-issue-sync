@@ -47,6 +47,8 @@ create_mirror() {
   local mirror_title mirror_body
   mirror_title="$(build_mirror_title "$repo" "$title")"
   mirror_body="$(build_mirror_body "$ref")"
+  # Ensure repo label exists in tracker
+  gh label create "$repo" -R "$TRACKER_REPO" --color "ededed" 2>/dev/null || true
   gh issue create -R "$TRACKER_REPO" \
     --title "$mirror_title" \
     --body "$mirror_body" \
