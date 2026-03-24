@@ -93,6 +93,10 @@ Tracker repo (mirror issues + TODO.md + DONE.md)
 
 **Tracker-only issues**: issues without a `Source:` ref are private to the tracker — visible in TODO.md under `## tracker`, ignored by reverse sync.
 
+**GitHub Projects board**: use the built-in [auto-add workflow][gh-auto-add] to import issues from the tracker repo into a Kanban board. The board auto-reflects issue state (close → Done) but dragging cards does NOT change issue state — the GHA reverse sync handles that direction.
+
+[gh-auto-add]: https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/adding-items-automatically
+
 ## PAT requirements
 
 | Scope | Why |
