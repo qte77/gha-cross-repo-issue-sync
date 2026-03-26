@@ -1,0 +1,12 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Claude Code local (user-specific, not shared)
+.claude/settings.local.json
+
+# Sandbox artifacts (Claude Code worktree bare git files)
+/HEAD
+/hooks
+/objects
+/refs
