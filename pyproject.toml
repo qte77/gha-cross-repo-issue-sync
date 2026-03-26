@@ -1,3 +1,8 @@
+[project]
+name = "gha-cross-repo-issue-sync"
+version = "0.1.0"
+description = "GitHub Action for bidirectional cross-repo issue sync"
+
 [tool.bumpversion]
 current_version = "0.1.0"
 commit = false
@@ -7,6 +12,14 @@ tag_name = "v{new_version}"
 message = "bump: {current_version} → {new_version}"
 
 [[tool.bumpversion.files]]
+filename = "pyproject.toml"
+
+[[tool.bumpversion.files]]
 filename = "action.yaml"
 search = "# version: {current_version}"
 replace = "# version: {new_version}"
+
+[[tool.bumpversion.files]]
+filename = "CHANGELOG.md"
+search = "## [Unreleased]\n\n---"
+replace = "## [Unreleased]\n\n---\n\n## [{new_version}] - {now:%Y-%m-%d}"
