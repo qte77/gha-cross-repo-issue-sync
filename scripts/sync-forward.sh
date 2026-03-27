@@ -174,6 +174,9 @@ sync_repo() {
           mir_assignees="$(_mirror_assignees "$src_ref" "$mirror_json")"
           sync_mirror_assignees "$mirror_num" "$src_assignees" "$mir_assignees"
         fi
+
+        # Sync comments
+        sync_mirror_comments "$src_num" "$mirror_num" "$OWNER/$repo"
       fi
     elif [[ "$src_state" == "CLOSED" ]]; then
       if [[ -n "$mirror_num" && "$mirror_state" == "OPEN" ]]; then
@@ -185,6 +188,41 @@ sync_repo() {
       fi
     fi
   done < <(echo "$source_json" | jq -c '.[]')
+}
+
+# Sync comments from source issue to mirror issue.
+# Args: $1 = source issue number, $2 = mirror issue number, $3 = source repo (owner/repo)
+sync_mirror_comments() {
+  local src_num="$1" mirror_num="$2" src_repo="$3"
+
+  # Fetch comments from source and mirror
+  local src_comments mirror_comments
+  src_comments="$(gh api "repos/$src_repo/issues/$src_num/comments" --jq '.' 2>/dev/null || echo "[]")"
+  mirror_comments="$(gh api "repos/$TRACKER_REPO/issues/$mirror_num/comments" --jq '.' 2>/dev/null || echo "[]")"
+
+  # Process each source comment
+  while IFS= read -r comment; do
+    [[ -z "$comment" || "$comment" == "null" ]] && continue
+
+    local body author
+    body="$(echo "$comment" | jq -r '.body')"
+    author="$(echo "$comment" | jq -r '.user.login')"
+
+    # Skip bot and prefixed comments (loop prevention)
+    is_loop "$author" "$body" && continue
+
+    # Check if this comment is already synced (search for body text in mirror comments)
+    local already_synced
+    already_synced="$(echo "$mirror_comments" | jq -r --arg body "$body" \
+      '[.[] | select(.body | contains($body))] | length')"
+    [[ "$already_synced" -gt 0 ]] && continue
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "[dry-run] Would sync comment from @$author to mirror #$mirror_num"
+    else
+      gh issue comment "$mirror_num" -R "$TRACKER_REPO" --body "[source] @$author: $body"
+    fi
+  done < <(echo "$src_comments" | jq -c '.[]')
 }
 
 # Generate TODO.md and DONE.md from issues JSON.
