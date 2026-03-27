@@ -190,6 +190,32 @@ sync_repo() {
   done < <(echo "$source_json" | jq -c '.[]')
 }
 
+# Update PR status label on a mirror issue.
+# Args: $1 = mirror issue number, $2 = PR state (OPEN|MERGED|CLOSED)
+update_pr_status_label() {
+  local mirror_num="$1" pr_state="$2"
+  local status_label
+
+  case "$pr_state" in
+    OPEN)   status_label="pr:open" ;;
+    MERGED) status_label="pr:merged" ;;
+    CLOSED) status_label="pr:closed" ;;
+    *) return 0 ;;
+  esac
+
+  # Ensure status label exists
+  gh label create "$status_label" -R "$TRACKER_REPO" --color "0e8a16" 2>/dev/null || true
+
+  # Add the current status label
+  gh issue edit "$mirror_num" -R "$TRACKER_REPO" --add-label "$status_label"
+
+  # Remove other status labels
+  for other in "pr:open" "pr:merged" "pr:closed"; do
+    [[ "$other" != "$status_label" ]] && \
+      gh issue edit "$mirror_num" -R "$TRACKER_REPO" --remove-label "$other" 2>/dev/null || true
+  done
+}
+
 # Sync a single repo's PRs to tracker mirrors.
 # Args: $1 = repo name
 sync_repo_prs() {
@@ -237,12 +263,16 @@ sync_repo_prs() {
             --body "$mirror_body" \
             --label "$repo" --label "pr"
         fi
+      else
+        # Existing open mirror — ensure pr:open status label
+        [[ "$DRY_RUN" != "true" ]] && update_pr_status_label "$mirror_num" "OPEN"
       fi
     elif [[ "$pr_state" == "MERGED" || "$pr_state" == "CLOSED" ]]; then
       if [[ -n "$mirror_num" && "$mirror_state" == "OPEN" ]]; then
         if [[ "$DRY_RUN" == "true" ]]; then
           echo "[dry-run] Would close PR mirror #$mirror_num"
         else
+          update_pr_status_label "$mirror_num" "$pr_state"
           close_mirror "$mirror_num"
         fi
       fi
