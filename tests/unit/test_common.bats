@@ -109,3 +109,27 @@ setup() {
   result="$(build_mirror_body "qte77/repo#5")"
   echo "$result" | grep -q "Source: qte77/repo#5"
 }
+
+# --- is_pr_mirror ---
+
+@test "is_pr_mirror returns 0 for PR mirror body" {
+  is_pr_mirror "Source: qte77/repo#5 (PR)"
+}
+
+@test "is_pr_mirror returns 1 for issue mirror body" {
+  ! is_pr_mirror "Source: qte77/repo#5"
+}
+
+# --- build_pr_mirror_title ---
+
+@test "build_pr_mirror_title formats [repo] PR#N: title" {
+  result="$(build_pr_mirror_title "my-repo" "42" "Add feature")"
+  [ "$result" = "[my-repo] PR#42: Add feature" ]
+}
+
+# --- build_pr_mirror_body ---
+
+@test "build_pr_mirror_body includes Source ref with PR marker" {
+  result="$(build_pr_mirror_body "qte77/repo#5")"
+  echo "$result" | grep -q "Source: qte77/repo#5 (PR)"
+}

@@ -25,6 +25,13 @@ gh() {
     "issue reopen") echo "" ;;
     "issue edit")   echo "" ;;
     "issue comment") echo "" ;;
+    "pr list")
+      if [[ -n "${GH_MOCK_PR_JSON:-}" ]]; then
+        echo "$GH_MOCK_PR_JSON"
+      else
+        echo "[]"
+      fi
+      ;;
     "issue view")
       if [[ -n "${GH_MOCK_ISSUE_JSON:-}" ]]; then
         echo "$GH_MOCK_ISSUE_JSON"
