@@ -232,3 +232,22 @@ gh_calls() {
   DRY_RUN=true sync_repo_prs "test-repo"
   [ ! -f "$GH_MOCK_LOG" ] || ! gh_calls | grep -q "gh issue create"
 }
+
+# --- update_pr_status_label ---
+
+@test "update_pr_status_label adds pr:open for open PR" {
+  update_pr_status_label 20 "OPEN"
+  gh_calls | grep -q "\-\-add-label pr:open"
+}
+
+@test "update_pr_status_label replaces pr:open with pr:merged" {
+  update_pr_status_label 20 "MERGED"
+  gh_calls | grep -q "\-\-add-label pr:merged"
+  gh_calls | grep -q "\-\-remove-label pr:open"
+}
+
+@test "update_pr_status_label replaces pr:open with pr:closed" {
+  update_pr_status_label 20 "CLOSED"
+  gh_calls | grep -q "\-\-add-label pr:closed"
+  gh_calls | grep -q "\-\-remove-label pr:open"
+}
