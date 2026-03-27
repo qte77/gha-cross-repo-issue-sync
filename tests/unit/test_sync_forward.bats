@@ -172,3 +172,34 @@ gh_calls() {
   generate_markdown "$MARKDOWN_DIR" "" "$GH_MOCK_MIRROR_JSON"
   grep -q "Private planning task" "$MARKDOWN_DIR/TODO.md"
 }
+
+# --- sync_mirror_comments ---
+
+@test "sync_mirror_comments syncs new source comment to mirror" {
+  export GH_MOCK_SOURCE_COMMENTS='[{"id":100,"body":"This needs review","user":{"login":"alice"}}]'
+  export GH_MOCK_MIRROR_COMMENTS='[]'
+  sync_mirror_comments 1 10 "qte77/test-repo"
+  gh_calls | grep -q "gh issue comment 10"
+  gh_calls | grep -q "\[source\]"
+}
+
+@test "sync_mirror_comments skips already-synced comments" {
+  export GH_MOCK_SOURCE_COMMENTS='[{"id":100,"body":"This needs review","user":{"login":"alice"}}]'
+  export GH_MOCK_MIRROR_COMMENTS='[{"id":200,"body":"[source] @alice: This needs review","user":{"login":"github-actions[bot]"}}]'
+  sync_mirror_comments 1 10 "qte77/test-repo"
+  [ ! -f "$GH_MOCK_LOG" ] || ! gh_calls | grep -q "gh issue comment 10"
+}
+
+@test "sync_mirror_comments skips bot and prefixed comments" {
+  export GH_MOCK_SOURCE_COMMENTS='[{"id":100,"body":"[tracker] synced back","user":{"login":"github-actions[bot]"}}]'
+  export GH_MOCK_MIRROR_COMMENTS='[]'
+  sync_mirror_comments 1 10 "qte77/test-repo"
+  [ ! -f "$GH_MOCK_LOG" ] || ! gh_calls | grep -q "gh issue comment 10"
+}
+
+@test "sync_mirror_comments in dry-run does not post" {
+  export GH_MOCK_SOURCE_COMMENTS='[{"id":100,"body":"New comment","user":{"login":"alice"}}]'
+  export GH_MOCK_MIRROR_COMMENTS='[]'
+  DRY_RUN=true sync_mirror_comments 1 10 "qte77/test-repo"
+  [ ! -f "$GH_MOCK_LOG" ] || ! gh_calls | grep -q "gh issue comment 10"
+}

@@ -33,6 +33,21 @@ gh() {
       fi
       ;;
     "project item-add") echo "" ;;
+    "api "*)
+      local args="$*"
+      # Return mock comments for issue API calls
+      if [[ "$args" == *"/comments"* ]]; then
+        if [[ "$args" == *"$GH_MOCK_TRACKER_REPO"* && -n "${GH_MOCK_MIRROR_COMMENTS:-}" ]]; then
+          echo "$GH_MOCK_MIRROR_COMMENTS"
+        elif [[ -n "${GH_MOCK_SOURCE_COMMENTS:-}" ]]; then
+          echo "$GH_MOCK_SOURCE_COMMENTS"
+        else
+          echo "[]"
+        fi
+      else
+        echo "{}"
+      fi
+      ;;
     *)
       echo "UNMOCKED: gh $*" >&2
       return 1
