@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
 # common.sh — Shared functions for cross-repo issue sync.
 
-# Parse "Source: owner/repo#N" from issue body. Returns the ref or empty.
+# Parse "Source: owner/repo#N" or "Source: owner/repo#N (PR)" from issue body.
+# Returns the ref (without PR suffix) or empty.
 parse_source_ref() {
   local body="$1"
   echo -e "$body" | sed -n 's/^Source:[[:space:]]*\([^[:space:]]*\).*/\1/p' | head -1
+}
+
+# Check if a mirror body indicates a PR mirror (has "(PR)" suffix).
+is_pr_mirror() {
+  local body="$1"
+  echo -e "$body" | grep -q '^Source:.*[[:space:]]*(PR)$'
 }
 
 # Extract a component from a source ref (owner/repo#N).
@@ -49,4 +56,16 @@ build_mirror_title() {
 build_mirror_body() {
   local source_ref="$1"
   echo "Source: $source_ref"
+}
+
+# Build PR mirror title: [repo] PR#N: title
+build_pr_mirror_title() {
+  local repo="$1" pr_num="$2" title="$3"
+  echo "[$repo] PR#$pr_num: $title"
+}
+
+# Build PR mirror body with source reference and PR marker.
+build_pr_mirror_body() {
+  local source_ref="$1"
+  echo "Source: $source_ref (PR)"
 }

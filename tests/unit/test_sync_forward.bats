@@ -203,3 +203,32 @@ gh_calls() {
   DRY_RUN=true sync_mirror_comments 1 10 "qte77/test-repo"
   [ ! -f "$GH_MOCK_LOG" ] || ! gh_calls | grep -q "gh issue comment 10"
 }
+
+# --- sync_repo_prs ---
+
+@test "sync_repo_prs creates mirror for open PR" {
+  export GH_MOCK_PR_JSON='[{"number":5,"title":"Add widget","state":"OPEN","labels":[],"assignees":[]}]'
+  sync_repo_prs "test-repo"
+  gh_calls | grep -q "gh issue create"
+  gh_calls | grep -q "\[test-repo\] PR#5: Add widget"
+}
+
+@test "sync_repo_prs closes mirror for merged PR" {
+  export GH_MOCK_PR_JSON='[{"number":5,"title":"Add widget","state":"MERGED","labels":[],"assignees":[]}]'
+  # Mirror exists for this PR
+  export GH_MOCK_MIRROR_JSON='[{"number":20,"title":"[test-repo] PR#5: Add widget","body":"Source: qte77/test-repo#5 (PR)","state":"OPEN","labels":[{"name":"pr"}],"assignees":[]}]'
+  sync_repo_prs "test-repo"
+  gh_calls | grep -q "gh issue close 20"
+}
+
+@test "sync_repo_prs adds pr label to new mirrors" {
+  export GH_MOCK_PR_JSON='[{"number":5,"title":"Add widget","state":"OPEN","labels":[],"assignees":[]}]'
+  sync_repo_prs "test-repo"
+  gh_calls | grep -q "\-\-label.*pr"
+}
+
+@test "sync_repo_prs in dry-run does not call gh" {
+  export GH_MOCK_PR_JSON='[{"number":5,"title":"Add widget","state":"OPEN","labels":[],"assignees":[]}]'
+  DRY_RUN=true sync_repo_prs "test-repo"
+  [ ! -f "$GH_MOCK_LOG" ] || ! gh_calls | grep -q "gh issue create"
+}

@@ -94,6 +94,7 @@ runs:
         for repo in "${repos[@]}"; do
           echo "--- $repo ---"
           sync_repo "$repo"
+          sync_repo_prs "$repo"
         done
 
         # Generate markdown

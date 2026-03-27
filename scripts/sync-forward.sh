@@ -190,6 +190,66 @@ sync_repo() {
   done < <(echo "$source_json" | jq -c '.[]')
 }
 
+# Sync a single repo's PRs to tracker mirrors.
+# Args: $1 = repo name
+sync_repo_prs() {
+  local repo="$1"
+
+  # Fetch source PRs
+  local pr_json
+  pr_json="$(gh pr list -R "$OWNER/$repo" --state all --limit 200 \
+    --json number,title,state,labels,assignees 2>/dev/null || echo "[]")"
+
+  # Fetch existing mirrors (includes PR mirrors)
+  local mirror_json
+  mirror_json="$(gh issue list -R "$TRACKER_REPO" --state all --limit 500 \
+    --json number,title,body,state,labels,assignees 2>/dev/null || echo "[]")"
+
+  # Process each source PR
+  while IFS= read -r pr; do
+    [[ -z "$pr" || "$pr" == "null" ]] && continue
+
+    local pr_num pr_title pr_state pr_ref
+    pr_num="$(echo "$pr" | jq -r '.number')"
+    pr_title="$(echo "$pr" | jq -r '.title')"
+    pr_state="$(echo "$pr" | jq -r '.state')"
+    pr_ref="$OWNER/$repo#$pr_num"
+
+    # Find existing mirror by PR ref in body (includes "(PR)" marker)
+    local mirror_num mirror_state
+    mirror_num="$(echo "$mirror_json" | jq -r --arg ref "$pr_ref (PR)" \
+      '.[] | select(.body | contains($ref)) | .number' 2>/dev/null | head -1)"
+    mirror_state="$(echo "$mirror_json" | jq -r --arg ref "$pr_ref (PR)" \
+      '.[] | select(.body | contains($ref)) | .state' 2>/dev/null | head -1)"
+
+    if [[ "$pr_state" == "OPEN" ]]; then
+      if [[ -z "$mirror_num" ]]; then
+        if [[ "$DRY_RUN" == "true" ]]; then
+          echo "[dry-run] Would create PR mirror: [$repo] PR#$pr_num: $pr_title"
+        else
+          local mirror_title mirror_body
+          mirror_title="$(build_pr_mirror_title "$repo" "$pr_num" "$pr_title")"
+          mirror_body="$(build_pr_mirror_body "$pr_ref")"
+          gh label create "$repo" -R "$TRACKER_REPO" --color "ededed" 2>/dev/null || true
+          gh label create "pr" -R "$TRACKER_REPO" --color "0e8a16" 2>/dev/null || true
+          gh issue create -R "$TRACKER_REPO" \
+            --title "$mirror_title" \
+            --body "$mirror_body" \
+            --label "$repo" --label "pr"
+        fi
+      fi
+    elif [[ "$pr_state" == "MERGED" || "$pr_state" == "CLOSED" ]]; then
+      if [[ -n "$mirror_num" && "$mirror_state" == "OPEN" ]]; then
+        if [[ "$DRY_RUN" == "true" ]]; then
+          echo "[dry-run] Would close PR mirror #$mirror_num"
+        else
+          close_mirror "$mirror_num"
+        fi
+      fi
+    fi
+  done < <(echo "$pr_json" | jq -c '.[]')
+}
+
 # Sync comments from source issue to mirror issue.
 # Args: $1 = source issue number, $2 = mirror issue number, $3 = source repo (owner/repo)
 sync_mirror_comments() {
