@@ -7,7 +7,7 @@ Bidirectional GitHub issue sync across repos. Composite GitHub Action.
 [![Tests](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/test.yml/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/test.yml)
 [![CodeFactor](https://www.codefactor.io/repository/github/qte77/gha-cross-repo-issue-sync/badge)](https://www.codefactor.io/repository/github/qte77/gha-cross-repo-issue-sync)
 [![CodeQL](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/codeql.yml/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/codeql.yml)
-[![Dependabot Updates](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/dependabot/dependabot-updates)
+[![Dependabot](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/dependabot/dependabot-updates)
 
 - **Pull sync**: repo issues → tracker mirror issues + TODO.md/DONE.md
 - **Push sync**: tracker issue events → source repo (close, reopen, labels, assignees, title, comments)
