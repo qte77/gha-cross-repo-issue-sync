@@ -8,17 +8,17 @@ branding:
 
 inputs:
   direction:
-    description: 'Sync direction: forward, reverse, or both'
+    description: 'Sync direction: pull (repos→tracker), push (tracker→repos), or both'
     required: true
   tracker_repo:
     description: 'Tracker repo (e.g. owner/.github-private-project-tracker)'
     required: true
   repos_file:
-    description: 'Path to repos.txt (one repo name per line). Used for forward sync.'
+    description: 'Path to repos.txt (one repo name per line). Used for pull sync.'
     required: false
     default: 'repos.txt'
   repos:
-    description: 'Comma-separated repo list (alternative to repos_file). Used for forward sync.'
+    description: 'Comma-separated repo list (alternative to repos_file). Used for pull sync.'
     required: false
   owner:
     description: 'GitHub owner/org for tracked repos'
@@ -40,11 +40,11 @@ inputs:
     required: false
     default: 'false'
   event_action:
-    description: 'Issue event action (for reverse sync). Auto-set from github.event.action.'
+    description: 'Issue event action (for push sync). Auto-set from github.event.action.'
     required: false
     default: ${{ github.event.action }}
   event_issue_number:
-    description: 'Issue number that triggered the event (for reverse sync).'
+    description: 'Issue number that triggered the event (for push sync).'
     required: false
     default: ''
   event_label:
@@ -59,8 +59,8 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Forward sync
-      if: inputs.direction == 'forward' || inputs.direction == 'both'
+    - name: Pull sync (repos → tracker)
+      if: inputs.direction == 'pull' || inputs.direction == 'both'
       shell: bash
       env:
         GITHUB_TOKEN: ''
@@ -75,7 +75,7 @@ runs:
         ACTION_PATH: ${{ github.action_path }}
       run: |
         source "$ACTION_PATH/scripts/common.sh"
-        source "$ACTION_PATH/scripts/sync-forward.sh"
+        source "$ACTION_PATH/scripts/sync-pull.sh"
 
         # Build repo list
         repos=()
@@ -113,10 +113,10 @@ runs:
           generate_markdown "." "" "$tracker_json"
         fi
 
-        echo "Forward sync complete."
+        echo "Pull sync complete."
 
-    - name: Reverse sync
-      if: inputs.direction == 'reverse' || inputs.direction == 'both'
+    - name: Push sync (tracker → repos)
+      if: inputs.direction == 'push' || inputs.direction == 'both'
       shell: bash
       env:
         GITHUB_TOKEN: ''
@@ -134,7 +134,7 @@ runs:
         ACTION_PATH: ${{ github.action_path }}
       run: |
         source "$ACTION_PATH/scripts/common.sh"
-        source "$ACTION_PATH/scripts/sync-back.sh"
+        source "$ACTION_PATH/scripts/sync-push.sh"
 
         # Loop guard
         if is_loop "$GITHUB_ACTOR" ""; then
@@ -145,7 +145,7 @@ runs:
         # Get issue body to extract source ref
         issue_num="${EVENT_ISSUE_NUMBER:-$EVENT_ISSUE_NUMBER_FALLBACK}"
         if [[ -z "$issue_num" ]]; then
-          echo "::warning::No issue number in event. Skipping reverse sync."
+          echo "::warning::No issue number in event. Skipping push sync."
           exit 0
         fi
 
@@ -153,7 +153,7 @@ runs:
         source_ref="$(parse_source_ref "$issue_body")"
 
         if [[ -z "$source_ref" ]]; then
-          echo "Tracker-only issue #$issue_num. Skipping reverse sync."
+          echo "Tracker-only issue #$issue_num. Skipping push sync."
           exit 0
         fi
 
@@ -173,4 +173,4 @@ runs:
 
         dispatch_event "$action" "$source_ref" "$repo" "$EVENT_LABEL" "$title" "$EVENT_ASSIGNEE" "$comment"
 
-        echo "Reverse sync complete for $source_ref ($action)."
+        echo "Push sync complete for $source_ref ($action)."

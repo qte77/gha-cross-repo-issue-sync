@@ -2,17 +2,17 @@
 
 Bidirectional GitHub issue sync across repos. Composite GitHub Action.
 
-- **Forward sync**: repo issues → tracker mirror issues + TODO.md/DONE.md
-- **Reverse sync**: tracker issue events → source repo (close, reopen, labels, assignees, title, comments)
+- **Pull sync**: repo issues → tracker mirror issues + TODO.md/DONE.md
+- **Push sync**: tracker issue events → source repo (close, reopen, labels, assignees, title, comments)
 - **Tracker-only issues**: private tasks visible only in the tracker repo
 
 ## Usage
 
-### Forward sync (scheduled)
+### Pull sync (scheduled — repos → tracker)
 
 ```yaml
-# .github/workflows/sync-forward.yml
-name: Forward sync
+# .github/workflows/sync-pull.yml
+name: Pull sync
 on:
   schedule:
     - cron: '*/15 * * * *'
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: qte77/gha-cross-repo-issue-sync@v1
         with:
-          direction: forward
+          direction: pull
           tracker_repo: owner/.github-private-project-tracker
           repos_file: repos.txt
           token: ${{ secrets.PROJECT_TRACKER_PAT }}
@@ -41,11 +41,11 @@ jobs:
           git push
 ```
 
-### Reverse sync (event-driven)
+### Push sync (event-driven — tracker → repos)
 
 ```yaml
-# .github/workflows/sync-back.yml
-name: Reverse sync
+# .github/workflows/sync-push.yml
+name: Push sync
 on:
   issues:
     types: [closed, reopened, edited, labeled, unlabeled, assigned, unassigned]
@@ -58,7 +58,7 @@ jobs:
     steps:
       - uses: qte77/gha-cross-repo-issue-sync@v1
         with:
-          direction: reverse
+          direction: push
           tracker_repo: ${{ github.repository }}
           token: ${{ secrets.PROJECT_TRACKER_PAT }}
 ```
@@ -67,7 +67,7 @@ jobs:
 
 | Input | Required | Default | Description |
 |---|---|---|---|
-| `direction` | Yes | — | `forward`, `reverse`, or `both` |
+| `direction` | Yes | — | `pull` (repos→tracker), `push` (tracker→repos), or `both` |
 | `tracker_repo` | Yes | — | Tracker repo (`owner/repo`) |
 | `repos_file` | No | `repos.txt` | File listing tracked repos |
 | `repos` | No | — | Comma-separated repo list (alternative to file) |

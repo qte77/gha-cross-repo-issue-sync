@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
-# Phase 2 TDD: tests for scripts/sync-back.sh
-# Tests reverse sync (tracker → source repo) using mocked gh CLI.
+# Phase 2 TDD: tests for scripts/sync-push.sh
+# Tests push sync (tracker → source repo) using mocked gh CLI.
 
 setup() {
   export TMPDIR="${BATS_TMPDIR:-/tmp/claude-1000/bats-tmp}"
@@ -9,7 +9,7 @@ setup() {
   rm -f "$GH_MOCK_LOG"
   source "$BATS_TEST_DIRNAME/../test_helper/gh_mock.bash"
   source "$BATS_TEST_DIRNAME/../../scripts/common.sh"
-  source "$BATS_TEST_DIRNAME/../../scripts/sync-back.sh"
+  source "$BATS_TEST_DIRNAME/../../scripts/sync-push.sh"
 }
 
 teardown() {

@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
-# Phase 3 TDD: tests for scripts/sync-forward.sh
-# Tests forward sync (repo issues → tracker mirrors + markdown).
+# Phase 3 TDD: tests for scripts/sync-pull.sh
+# Tests pull sync (repo issues → tracker mirrors + markdown).
 
 FIXTURES="$BATS_TEST_DIRNAME/../fixtures"
 
@@ -20,7 +20,7 @@ setup() {
 
   source "$BATS_TEST_DIRNAME/../test_helper/gh_mock.bash"
   source "$BATS_TEST_DIRNAME/../../scripts/common.sh"
-  source "$BATS_TEST_DIRNAME/../../scripts/sync-forward.sh"
+  source "$BATS_TEST_DIRNAME/../../scripts/sync-pull.sh"
 }
 
 teardown() {

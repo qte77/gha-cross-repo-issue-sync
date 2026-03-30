@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# sync-back.sh — Reverse sync: tracker issue events → source repo.
+# sync-push.sh — Push sync: tracker issue events → source repo.
 # Requires common.sh to be sourced first.
 
 DRY_RUN="${DRY_RUN:-false}"
