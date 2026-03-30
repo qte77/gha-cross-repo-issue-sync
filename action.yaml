@@ -1,4 +1,4 @@
-# version: 0.1.0
+# version: 0.2.0
 name: 'Cross-Repo Issue Sync'
 description: 'Bidirectional GitHub issue sync across repos with mirror issues, markdown generation, and Projects board aggregation.'
 author: 'qte77'
