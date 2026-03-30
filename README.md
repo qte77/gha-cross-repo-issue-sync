@@ -1,10 +1,12 @@
 # gha-cross-repo-issue-sync
 
+Bidirectional GitHub issue sync across repos. Composite GitHub Action.
+
+![Version](https://img.shields.io/badge/version-0.2.0-8A2BE2)
+[![Tests](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/test.yml/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/test.yml)
 [![CodeFactor](https://www.codefactor.io/repository/github/qte77/gha-cross-repo-issue-sync/badge)](https://www.codefactor.io/repository/github/qte77/gha-cross-repo-issue-sync)
 [![CodeQL](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/codeql.yml/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/codeql.yml)
 [![Dependabot](https://img.shields.io/badge/dependabot-enabled-blue?logo=dependabot)](https://github.com/qte77/gha-cross-repo-issue-sync/security/dependabot)
-
-Bidirectional GitHub issue sync across repos. Composite GitHub Action.
 
 - **Pull sync**: repo issues → tracker mirror issues + TODO.md/DONE.md
 - **Push sync**: tracker issue events → source repo (close, reopen, labels, assignees, title, comments)
