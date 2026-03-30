@@ -127,4 +127,4 @@ bats tests/unit/test_sync_forward.bats
 
 ## License
 
-MIT
+Apache-2.0
