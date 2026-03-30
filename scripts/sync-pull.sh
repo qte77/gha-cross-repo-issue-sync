@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# sync-forward.sh — Forward sync: repo issues → tracker mirrors + markdown.
+# sync-pull.sh — Pull sync: repo issues → tracker mirrors + markdown.
 # Requires common.sh to be sourced first.
 
 DRY_RUN="${DRY_RUN:-false}"
