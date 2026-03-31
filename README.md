@@ -2,6 +2,13 @@
 
 Bidirectional GitHub issue sync across repos. Composite GitHub Action.
 
+![Version](https://img.shields.io/badge/version-0.2.0-8A2BE2)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Tests](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/test.yml/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/test.yml)
+[![CodeFactor](https://www.codefactor.io/repository/github/qte77/gha-cross-repo-issue-sync/badge)](https://www.codefactor.io/repository/github/qte77/gha-cross-repo-issue-sync)
+[![CodeQL](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/codeql.yml/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/codeql.yml)
+[![Dependabot](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/dependabot/dependabot-updates)
+
 - **Pull sync**: repo issues → tracker mirror issues + TODO.md/DONE.md
 - **Push sync**: tracker issue events → source repo (close, reopen, labels, assignees, title, comments)
 - **Tracker-only issues**: private tasks visible only in the tracker repo
