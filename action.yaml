@@ -76,7 +76,6 @@ runs:
       if: inputs.direction == 'pull' || inputs.direction == 'both'
       shell: bash
       env:
-        GITHUB_TOKEN: ''
         GH_TOKEN: ${{ inputs.token }}
         TRACKER_REPO: ${{ inputs.tracker_repo }}
         OWNER: ${{ inputs.owner }}
@@ -133,7 +132,6 @@ runs:
       if: inputs.direction == 'push' || inputs.direction == 'both'
       shell: bash
       env:
-        GITHUB_TOKEN: ''
         GH_TOKEN: ${{ inputs.token }}
         TRACKER_REPO: ${{ inputs.tracker_repo }}
         DRY_RUN: ${{ inputs.dry_run }}

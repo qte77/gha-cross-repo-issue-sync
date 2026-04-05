@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+### Fixed
+
+- Remove unnecessary `GITHUB_TOKEN: ''` override — `GH_TOKEN` already takes precedence
+- Account mode: add org endpoint fallback, `per_page=100`, error visibility
+- Account mode: use REST API instead of GraphQL (fine-grained PAT compatibility)
+
 ## [0.4.1] - 2026-04-05
 
 ### Removed

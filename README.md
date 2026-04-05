@@ -172,6 +172,8 @@ Tracker repo (mirror issues + TODO.md + DONE.md)
 
 ## PAT requirements
 
+The default `GITHUB_TOKEN` handles account mode repo discovery (public read) and markdown commits (same-repo write). A PAT is only needed for **cross-repo** issue operations.
+
 | Scope | Why |
 |---|---|
 | Issues (read+write) on tracked repos | Pull: read. Push: write. |
