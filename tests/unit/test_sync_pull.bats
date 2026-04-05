@@ -289,6 +289,35 @@ gh_calls() {
 
 # --- error handling ---
 
+# --- add_to_project ---
+
+@test "add_to_project adds each tracker issue to project board" {
+  export PROJECT_ID="PVT_123"
+  export GH_MOCK_MIRROR_JSON='[{"number":10,"title":"[repo] Bug","body":"Source: qte77/repo#1","state":"OPEN","labels":[],"assignees":[]},{"number":11,"title":"Private task","body":"No source","state":"OPEN","labels":[],"assignees":[]}]'
+  add_to_project
+  gh_calls | grep -q "gh project item-add.*PVT_123"
+  local count
+  count="$(gh_calls | grep -c "project item-add")"
+  [ "$count" -eq 2 ]
+}
+
+@test "add_to_project skips when PROJECT_ID is empty" {
+  export PROJECT_ID=""
+  add_to_project
+  [ ! -f "$GH_MOCK_LOG" ] || ! gh_calls | grep -q "project item-add"
+}
+
+@test "add_to_project in dry-run does not call gh" {
+  export PROJECT_ID="PVT_123"
+  export GH_MOCK_MIRROR_JSON='[{"number":10,"title":"Test","body":"","state":"OPEN","labels":[],"assignees":[]}]'
+  export DRY_RUN=true
+  run add_to_project
+  [ ! -f "$GH_MOCK_LOG" ] || ! gh_calls | grep -q "project item-add"
+  [[ "$output" == *"[dry-run]"* ]]
+}
+
+# --- error handling ---
+
 @test "sync_repo handles gh issue list failure gracefully" {
   export GH_MOCK_FAIL_CMD="issue list"
   run sync_repo "test-repo"
