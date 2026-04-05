@@ -2,7 +2,7 @@
 
 Bidirectional GitHub issue sync across repos. Composite GitHub Action.
 
-![Version](https://img.shields.io/badge/version-0.4.0-8A2BE2)
+![Version](https://img.shields.io/badge/version-0.4.1-8A2BE2)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Tests](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/test.yml/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/test.yml)
 [![CodeFactor](https://www.codefactor.io/repository/github/qte77/gha-cross-repo-issue-sync/badge)](https://www.codefactor.io/repository/github/qte77/gha-cross-repo-issue-sync)
