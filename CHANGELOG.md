@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.3.0] - 2026-04-05
+
 ### Added
 
 - `repo_source` input: choose between `file` (repos.txt/CSV) and `account` (auto-discover all repos for owner)
