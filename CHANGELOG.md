@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.4.2] - 2026-04-05
+
 ### Fixed
 
 - Remove unnecessary `GITHUB_TOKEN: ''` override — `GH_TOKEN` already takes precedence
