@@ -7,26 +7,40 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Test reusable workflows by calling them with dry_run=true.
-# Also tests the composite action indirectly (reusable workflows call it).
+permissions:
+  contents: read
+  issues: read
 
 jobs:
   smoke-file-mode:
     name: Dry-run pull sync (file mode)
-    uses: ./.github/workflows/reusable-pull.yml
-    with:
-      tracker_repo: ${{ github.repository }}
-      repos: gha-cross-repo-issue-sync
-      dry_run: 'true'
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create test repos.txt
+        run: printf '%s\n' "gha-cross-repo-issue-sync" > repos.txt
+
+      - name: Run action (file mode, dry-run)
+        uses: ./
+        with:
+          direction: pull
+          tracker_repo: ${{ github.repository }}
+          repos_file: repos.txt
+          token: ${{ github.token }}
+          dry_run: 'true'
 
   smoke-account-mode:
     name: Dry-run pull sync (account mode)
-    uses: ./.github/workflows/reusable-pull.yml
-    with:
-      tracker_repo: ${{ github.repository }}
-      repo_source: account
-      dry_run: 'true'
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run action (account mode, dry-run)
+        uses: ./
+        with:
+          direction: pull
+          tracker_repo: ${{ github.repository }}
+          repo_source: account
+          token: ${{ github.token }}
+          dry_run: 'true'
