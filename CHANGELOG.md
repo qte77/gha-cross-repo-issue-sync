@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.4.0] - 2026-04-05
+
 ### Added
 
 - Reusable workflows (`reusable-pull.yml`, `reusable-push.yml`) via `workflow_call`
