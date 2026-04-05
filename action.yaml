@@ -21,6 +21,18 @@ inputs:
   repos:
     description: 'Comma-separated repo list (alternative to repos_file). Used for pull sync.'
     required: false
+  repo_source:
+    description: 'Source for repo list: file (from repos_file/repos) or account (auto-discover all repos for owner)'
+    required: false
+    default: 'file'
+  include_forks:
+    description: 'Include forked repos in account mode'
+    required: false
+    default: 'false'
+  include_archived:
+    description: 'Include archived repos in account mode'
+    required: false
+    default: 'false'
   owner:
     description: 'GitHub owner/org for tracked repos'
     required: false
@@ -71,6 +83,9 @@ runs:
         DRY_RUN: ${{ inputs.dry_run }}
         REPOS_FILE: ${{ inputs.repos_file }}
         REPOS_CSV: ${{ inputs.repos }}
+        REPO_SOURCE: ${{ inputs.repo_source }}
+        INCLUDE_FORKS: ${{ inputs.include_forks }}
+        INCLUDE_ARCHIVED: ${{ inputs.include_archived }}
         GENERATE_MARKDOWN: ${{ inputs.generate_markdown }}
         PROJECT_ID: ${{ inputs.project_id }}
         ACTION_PATH: ${{ github.action_path }}
@@ -79,15 +94,10 @@ runs:
         source "$ACTION_PATH/scripts/sync-pull.sh"
 
         # Build repo list
-        repos=()
-        if [[ -n "$REPOS_CSV" ]]; then
-          IFS=',' read -ra repos <<< "$REPOS_CSV"
-        elif [[ -f "$REPOS_FILE" ]]; then
-          mapfile -t repos < <(grep -v '^\s*#' "$REPOS_FILE" | grep -v '^\s*$' | xargs -L1)
-        fi
+        mapfile -t repos < <(build_repo_list)
 
         if [[ ${#repos[@]} -eq 0 ]]; then
-          echo "::warning::No repos to sync. Set repos_file or repos input."
+          echo "::warning::No repos to sync. Set repos_file, repos, or repo_source=account."
           exit 0
         fi
 
@@ -113,6 +123,9 @@ runs:
           # Tracker-only issues
           generate_markdown "." "" "$tracker_json"
         fi
+
+        # Add issues to GitHub Projects board
+        add_to_project
 
         echo "Pull sync complete."
 
