@@ -111,6 +111,10 @@ jobs:
 | `project_id` | No | — | GitHub Projects board ID |
 | `generate_markdown` | No | `true` | Generate TODO.md/DONE.md |
 | `dry_run` | No | `false` | Preview without changes |
+| `event_action` | No | `github.event.action` | Issue event action (push sync) |
+| `event_issue_number` | No | — | Issue number that triggered the event (push sync) |
+| `event_label` | No | — | Label name from labeled/unlabeled event (push sync) |
+| `event_assignee` | No | — | Assignee login from assigned/unassigned event (push sync) |
 
 ## How it works
 

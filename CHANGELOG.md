@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - `include_forks` and `include_archived` inputs for account mode filtering
 - `build_repo_list` function in `common.sh` (extracted from action.yaml inline logic)
 - GitHub Projects board aggregation via `project_id` input (`add_to_project` in sync-pull.sh)
+- Integration dry-run workflow (`integration.yml`) — smoke tests file and account modes on every PR
 
 ### Changed
 
