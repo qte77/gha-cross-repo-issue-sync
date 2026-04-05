@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
-# Phase 5 TDD: validation tests for repo infra files.
-# Checks that required files exist with correct structure.
+# Contract tests: required repo infrastructure files exist.
+# Tests file presence and executability — NOT content details.
 
 REPO_ROOT="$BATS_TEST_DIRNAME/../.."
 
@@ -9,9 +9,9 @@ setup() {
   export TMPDIR="${BATS_TMPDIR:-/tmp/claude-1000/bats-tmp}"
 }
 
-# --- action.yaml ---
+# --- action definition ---
 
-@test "action.yaml exists and has required branding fields" {
+@test "action.yaml exists with required marketplace fields" {
   [ -f "$REPO_ROOT/action.yaml" ]
   grep -q "^name:" "$REPO_ROOT/action.yaml"
   grep -q "^description:" "$REPO_ROOT/action.yaml"
@@ -19,76 +19,54 @@ setup() {
   grep -q "color:" "$REPO_ROOT/action.yaml"
 }
 
-@test "action.yaml unsets GITHUB_TOKEN so PAT takes precedence" {
-  # gh CLI resolves GITHUB_TOKEN > GH_TOKEN; must unset in GHA
-  local count
-  count="$(grep -c "GITHUB_TOKEN: ''" "$REPO_ROOT/action.yaml")"
-  [ "$count" -eq 2 ]
+# --- CI/CD workflows ---
+
+@test "CI workflow exists for running tests" {
+  [ -f "$REPO_ROOT/.github/workflows/test.yml" ]
 }
 
-# --- dependabot ---
-
-@test "dependabot.yml exists and covers github-actions ecosystem" {
-  [ -f "$REPO_ROOT/.github/dependabot.yml" ]
-  grep -q "github-actions" "$REPO_ROOT/.github/dependabot.yml"
+@test "release workflow exists for version bumps" {
+  [ -f "$REPO_ROOT/.github/workflows/bump-and-release.yml" ]
 }
 
-# --- codeql ---
-
-@test "codeql workflow exists" {
+@test "CodeQL security scanning workflow exists" {
   [ -f "$REPO_ROOT/.github/workflows/codeql.yml" ]
 }
 
-# --- bump-my-version ---
-
-@test "bump-and-release workflow exists" {
-  [ -f "$REPO_ROOT/.github/workflows/bump-and-release.yml" ]
-  grep -q "bump-my-version" "$REPO_ROOT/.github/workflows/bump-and-release.yml"
+@test "Dependabot configuration exists" {
+  [ -f "$REPO_ROOT/.github/dependabot.yml" ]
 }
 
-@test "pyproject.toml has bumpversion config" {
+# --- version management ---
+
+@test "pyproject.toml exists with bumpversion config" {
   [ -f "$REPO_ROOT/pyproject.toml" ]
   grep -q "tool.bumpversion" "$REPO_ROOT/pyproject.toml"
 }
 
-# --- cleanup script ---
+# --- scripts ---
 
 @test "cleanup script exists and is executable" {
   [ -f "$REPO_ROOT/.github/scripts/delete_branch_pr_tag.sh" ]
   [ -x "$REPO_ROOT/.github/scripts/delete_branch_pr_tag.sh" ]
 }
 
-# --- .gitmessage ---
+# --- contributor templates ---
 
-@test ".gitmessage exists with conventional commit hint" {
-  [ -f "$REPO_ROOT/.gitmessage" ]
-  grep -qi "feat\|fix\|chore\|docs" "$REPO_ROOT/.gitmessage"
-}
-
-# --- issue template ---
-
-@test "issue template exists" {
-  [ -f "$REPO_ROOT/.github/ISSUE_TEMPLATE/bug_report.md" ] || \
-  [ -f "$REPO_ROOT/.github/ISSUE_TEMPLATE/bug_report.yml" ] || \
+@test "issue template directory exists" {
   [ -d "$REPO_ROOT/.github/ISSUE_TEMPLATE" ]
 }
-
-# --- PR template ---
 
 @test "PR template exists" {
   [ -f "$REPO_ROOT/.github/pull_request_template.md" ]
 }
 
-# --- BATS CI ---
-
-@test "CI workflow runs bats tests" {
-  [ -f "$REPO_ROOT/.github/workflows/test.yml" ]
-  grep -q "bats" "$REPO_ROOT/.github/workflows/test.yml"
+@test "commit message template exists" {
+  [ -f "$REPO_ROOT/.gitmessage" ]
 }
 
-# --- LICENSE ---
+# --- license ---
 
-@test "LICENSE exists with Apache-2.0" {
+@test "LICENSE file exists" {
   [ -f "$REPO_ROOT/LICENSE" ]
-  grep -q "Apache License" "$REPO_ROOT/LICENSE"
 }

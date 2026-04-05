@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+
+- Refactored test suite for strict TDD behavior-first compliance (92 → 104 tests)
+- Refactored `test_infra_files.bats` from brittle content matching to contract tests
+- Added round-trip tests for `build_mirror_body` → `parse_source_ref`
+- Added dry-run preview message verification tests
+- Added multiline comment sync test
+- Added markdown format validation tests (checkbox format, section headers, multi-repo append)
+- Added error injection support to `gh_mock.bash` (`GH_MOCK_FAIL_CMD`)
+- Added error handling tests for `sync_repo` and `handle_issue_closed`
+- Added edge case tests for special characters in titles
+
+### Added
+
+- `Makefile` with `setup_dev`, `test`, `lint`, `clean` recipes
+
 ---
 
 ## [0.2.0] - 2026-03-30
