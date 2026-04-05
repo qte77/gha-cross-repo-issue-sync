@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - `build_repo_list` function in `common.sh` (extracted from action.yaml inline logic)
 - GitHub Projects board aggregation via `project_id` input (`add_to_project` in sync-pull.sh)
 - Integration dry-run workflow (`integration.yml`) — smoke tests file and account modes on every PR
+- Event-driven pull sync via `repository_dispatch` — instant single-repo sync from source repos
 
 ### Changed
 
