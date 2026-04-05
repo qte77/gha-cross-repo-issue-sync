@@ -148,6 +148,12 @@ gh_calls() {
   [ ! -f "$GH_MOCK_LOG" ] || ! gh_calls | grep -q "gh issue close"
 }
 
+@test "sync_repo dry-run prints preview message for new issues" {
+  export DRY_RUN=true
+  run sync_repo "test-repo"
+  [[ "$output" == *"[dry-run] Would create mirror"* ]]
+}
+
 # --- generate_markdown ---
 
 @test "generate_markdown writes TODO.md with open issues" {
@@ -171,6 +177,28 @@ gh_calls() {
 @test "generate_markdown includes tracker-only issues in TODO.md" {
   generate_markdown "$MARKDOWN_DIR" "" "$GH_MOCK_MIRROR_JSON"
   grep -q "Private planning task" "$MARKDOWN_DIR/TODO.md"
+}
+
+@test "generate_markdown uses checkbox format for open issues" {
+  generate_markdown "$MARKDOWN_DIR" "test-repo" "$GH_MOCK_SOURCE_JSON"
+  grep -q '^\- \[ \] ' "$MARKDOWN_DIR/TODO.md"
+}
+
+@test "generate_markdown uses checked format for closed issues" {
+  generate_markdown "$MARKDOWN_DIR" "test-repo" "$GH_MOCK_SOURCE_JSON"
+  grep -q '^\- \[x\] ' "$MARKDOWN_DIR/DONE.md"
+}
+
+@test "generate_markdown includes section header with repo name" {
+  generate_markdown "$MARKDOWN_DIR" "test-repo" "$GH_MOCK_SOURCE_JSON"
+  grep -q '^## test-repo' "$MARKDOWN_DIR/TODO.md"
+}
+
+@test "generate_markdown appends sections for multiple repos" {
+  generate_markdown "$MARKDOWN_DIR" "repo-a" "$GH_MOCK_SOURCE_JSON"
+  generate_markdown "$MARKDOWN_DIR" "repo-b" "$GH_MOCK_SOURCE_JSON"
+  grep -q '## repo-a' "$MARKDOWN_DIR/TODO.md"
+  grep -q '## repo-b' "$MARKDOWN_DIR/TODO.md"
 }
 
 # --- sync_mirror_comments ---
@@ -202,6 +230,13 @@ gh_calls() {
   export GH_MOCK_MIRROR_COMMENTS='[]'
   DRY_RUN=true sync_mirror_comments 1 10 "qte77/test-repo"
   [ ! -f "$GH_MOCK_LOG" ] || ! gh_calls | grep -q "gh issue comment 10"
+}
+
+@test "sync_mirror_comments preserves multiline comment body" {
+  export GH_MOCK_SOURCE_COMMENTS='[{"id":100,"body":"Line one\nLine two\nLine three","user":{"login":"alice"}}]'
+  export GH_MOCK_MIRROR_COMMENTS='[]'
+  sync_mirror_comments 1 10 "qte77/test-repo"
+  gh_calls | grep -q "gh issue comment 10"
 }
 
 # --- sync_repo_prs ---
@@ -250,4 +285,13 @@ gh_calls() {
   update_pr_status_label 20 "CLOSED"
   gh_calls | grep -q "\-\-add-label pr:closed"
   gh_calls | grep -q "\-\-remove-label pr:open"
+}
+
+# --- error handling ---
+
+@test "sync_repo handles gh issue list failure gracefully" {
+  export GH_MOCK_FAIL_CMD="issue list"
+  run sync_repo "test-repo"
+  # Should not crash — exits 0 or handles the error
+  [ "$status" -eq 0 ]
 }

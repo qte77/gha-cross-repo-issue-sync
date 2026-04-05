@@ -61,6 +61,11 @@ gh_calls() {
   gh_calls | grep -q 'gh issue edit 2 -R qte77/test-repo --title New title'
 }
 
+@test "handle_issue_edited handles title with special characters" {
+  handle_issue_edited "qte77/test-repo#2" "qte77/test-repo" "Fix: handle 'quotes' & \"doubles\""
+  gh_calls | grep -q "gh issue edit 2 -R qte77/test-repo --title"
+}
+
 # --- handle_issue_assigned ---
 
 @test "handle_issue_assigned adds assignee to source issue" {
@@ -140,6 +145,13 @@ gh_calls() {
   [ ! -f "$GH_MOCK_LOG" ] || [ ! -s "$GH_MOCK_LOG" ]
 }
 
+@test "dispatch_event dry-run prints preview with action and ref" {
+  run bash -c 'DRY_RUN=true; source "'"$BATS_TEST_DIRNAME"'/../../scripts/common.sh"; source "'"$BATS_TEST_DIRNAME"'/../../scripts/sync-push.sh"; dispatch_event "closed" "qte77/test-repo#1" "qte77/test-repo" "" "" ""'
+  [[ "$output" == *"[dry-run]"* ]]
+  [[ "$output" == *"closed"* ]]
+  [[ "$output" == *"qte77/test-repo#1"* ]]
+}
+
 # --- Guard: unknown action ---
 
 @test "dispatch_event prints error for unknown action" {
@@ -147,4 +159,14 @@ gh_calls() {
   [ "$status" -eq 0 ]
   echo "$output" | grep -q "Unknown action: invalid_action"
   [ ! -f "$GH_MOCK_LOG" ] || [ ! -s "$GH_MOCK_LOG" ]
+}
+
+# --- error handling ---
+
+@test "handle_issue_closed does not crash when gh fails" {
+  export GH_MOCK_FAIL_CMD="issue close"
+  run handle_issue_closed "qte77/test-repo#5" "qte77/test-repo"
+  # gh failure propagates but should not cause unexpected behavior
+  [ "$status" -ne 0 ]
+  gh_calls | grep -q "gh issue close"
 }

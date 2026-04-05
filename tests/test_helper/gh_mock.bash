@@ -8,6 +8,12 @@ export GH_MOCK_LOG="${GH_MOCK_LOG:-$BATS_TMPDIR/gh_mock.log}"
 gh() {
   echo "gh $*" >> "$GH_MOCK_LOG"
 
+  # Error injection: if GH_MOCK_FAIL_CMD matches, return exit 1
+  if [[ -n "${GH_MOCK_FAIL_CMD:-}" && "$1 $2" == "$GH_MOCK_FAIL_CMD" ]]; then
+    echo "gh: mock error for $1 $2" >&2
+    return 1
+  fi
+
   case "$1 $2" in
     "issue list")
       # Detect which repo is being queried via -R flag

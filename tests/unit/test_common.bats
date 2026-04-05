@@ -133,3 +133,26 @@ setup() {
   result="$(build_pr_mirror_body "qte77/repo#5")"
   echo "$result" | grep -q "Source: qte77/repo#5 (PR)"
 }
+
+# --- round-trip: build → parse ---
+
+@test "build_mirror_body round-trips through parse_source_ref" {
+  ref="qte77/my-repo#42"
+  body="$(build_mirror_body "$ref")"
+  result="$(parse_source_ref "$body")"
+  [ "$result" = "$ref" ]
+}
+
+@test "build_pr_mirror_body round-trips through parse_source_ref and is_pr_mirror" {
+  ref="qte77/pr-repo#7"
+  body="$(build_pr_mirror_body "$ref")"
+  result="$(parse_source_ref "$body")"
+  [ "$result" = "$ref" ]
+  is_pr_mirror "$body"
+}
+
+@test "parse_source_ref finds ref regardless of line position in body" {
+  body="Title line\nSome description\nSource: qte77/deep-repo#99\nFooter"
+  result="$(parse_source_ref "$body")"
+  [ "$result" = "qte77/deep-repo#99" ]
+}
