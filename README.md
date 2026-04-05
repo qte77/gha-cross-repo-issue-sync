@@ -48,6 +48,31 @@ jobs:
           git push
 ```
 
+### Pull sync with account mode (all repos for owner)
+
+```yaml
+# .github/workflows/sync-pull-account.yml
+name: Pull sync (all repos)
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  issues: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: qte77/gha-cross-repo-issue-sync@v1
+        with:
+          direction: pull
+          tracker_repo: owner/.github-private-project-tracker
+          repo_source: account
+          token: ${{ secrets.PROJECT_TRACKER_PAT }}
+```
+
 ### Push sync (event-driven — tracker → repos)
 
 ```yaml
@@ -78,6 +103,9 @@ jobs:
 | `tracker_repo` | Yes | — | Tracker repo (`owner/repo`) |
 | `repos_file` | No | `repos.txt` | File listing tracked repos |
 | `repos` | No | — | Comma-separated repo list (alternative to file) |
+| `repo_source` | No | `file` | `file` (repos_file/repos) or `account` (auto-discover all repos for owner) |
+| `include_forks` | No | `false` | Include forked repos in account mode |
+| `include_archived` | No | `false` | Include archived repos in account mode |
 | `owner` | No | `github.repository_owner` | GitHub owner for tracked repos |
 | `token` | Yes | `github.token` | PAT with Issues read+write |
 | `project_id` | No | — | GitHub Projects board ID |
@@ -92,15 +120,15 @@ Source repos (issues = SOT)
 Tracker repo (mirror issues + TODO.md + DONE.md)
 ```
 
-**Forward** (batch, scheduled): reads issues from all repos, creates/closes/updates mirrors, generates markdown.
+**Pull** (batch, scheduled): reads issues from all repos, creates/closes/updates mirrors, generates markdown.
 
-**Reverse** (event-driven, instant): fires on issue events in the tracker repo, propagates state changes back to source repos via `Source: owner/repo#N` reference in the mirror issue body.
+**Push** (event-driven, instant): fires on issue events in the tracker repo, propagates state changes back to source repos via `Source: owner/repo#N` reference in the mirror issue body.
 
 **Loop prevention**: bot actor check + comment prefix guards (`[source]`, `[tracker]`, `[sync-bot]`).
 
-**Tracker-only issues**: issues without a `Source:` ref are private to the tracker — visible in TODO.md under `## tracker`, ignored by reverse sync.
+**Tracker-only issues**: issues without a `Source:` ref are private to the tracker — visible in TODO.md under `## tracker`, ignored by push sync.
 
-**GitHub Projects board**: use the built-in [auto-add workflow][gh-auto-add] to import tracker issues into a Kanban board. The board reflects issue state (close → Done) but dragging cards does NOT change issue state — the GHA reverse sync handles that direction. See [adding items to projects][gh-add-items] for bulk import options.
+**GitHub Projects board**: when `project_id` is set, pull sync automatically adds all open tracker issues to the board via `gh project item-add`. Alternatively, use the built-in [auto-add workflow][gh-auto-add]. The board reflects issue state (close → Done) but dragging cards does NOT change issue state — the GHA push sync handles that direction. See [adding items to projects][gh-add-items] for bulk import options.
 
 **Projects API limitations**: fine-grained PATs [do not support user-owned projects][gh-pat-projects] — only org-owned projects via [REST API][gh-projects-rest]. For user-owned projects, use the UI auto-add workflow or a [classic PAT with `project` scope][gh-pat-classic]. See [fine-grained PAT feature gaps][gh-pat-ga] for current status.
 
@@ -128,8 +156,8 @@ bats tests/unit/
 
 # Run specific phase
 bats tests/unit/test_common.bats
-bats tests/unit/test_sync_back.bats
-bats tests/unit/test_sync_forward.bats
+bats tests/unit/test_sync_push.bats
+bats tests/unit/test_sync_pull.bats
 ```
 
 ## License
