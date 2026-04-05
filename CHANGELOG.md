@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.4.1] - 2026-04-05
+
 ### Removed
 
 - Reusable workflows — cross-repo `workflow_call` fails with `startup_failure` when caller has `default_workflow_permissions: read`
