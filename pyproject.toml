@@ -1,10 +1,10 @@
 [project]
 name = "gha-cross-repo-issue-sync"
-version = "0.4.2"
+version = "0.4.3"
 description = "GitHub Action for bidirectional cross-repo issue sync"
 
 [tool.bumpversion]
-current_version = "0.4.2"
+current_version = "0.4.3"
 commit = false
 tag = false
 allow_dirty = true
