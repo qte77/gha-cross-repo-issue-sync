@@ -38,6 +38,13 @@ gh() {
         echo "[]"
       fi
       ;;
+    "repo list")
+      if [[ -n "${GH_MOCK_REPO_LIST:-}" ]]; then
+        echo "$GH_MOCK_REPO_LIST"
+      else
+        printf '%s\n' "repo-a" "repo-b" "repo-c"
+      fi
+      ;;
     "issue view")
       if [[ -n "${GH_MOCK_ISSUE_JSON:-}" ]]; then
         echo "$GH_MOCK_ISSUE_JSON"

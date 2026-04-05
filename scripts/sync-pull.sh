@@ -363,3 +363,23 @@ generate_markdown() {
     fi
   fi
 }
+
+# Add all open tracker issues to a GitHub Projects board.
+# Reads PROJECT_ID, TRACKER_REPO, DRY_RUN from env.
+add_to_project() {
+  [[ -z "${PROJECT_ID:-}" ]] && return 0
+
+  local issues_json
+  issues_json="$(gh issue list -R "$TRACKER_REPO" --state open --limit 500 \
+    --json number 2>/dev/null || echo "[]")"
+
+  while IFS= read -r num; do
+    [[ -z "$num" || "$num" == "null" ]] && continue
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "[dry-run] Would add issue #$num to project $PROJECT_ID"
+    else
+      gh project item-add "$PROJECT_ID" --owner "${TRACKER_REPO%%/*}" \
+        --url "https://github.com/$TRACKER_REPO/issues/$num" 2>/dev/null || true
+    fi
+  done < <(echo "$issues_json" | jq -r '.[].number')
+}

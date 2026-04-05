@@ -156,3 +156,82 @@ setup() {
   result="$(parse_source_ref "$body")"
   [ "$result" = "qte77/deep-repo#99" ]
 }
+
+# --- build_repo_list ---
+
+@test "build_repo_list file mode returns repos from CSV" {
+  export REPO_SOURCE="file"
+  export REPOS_CSV="repo-a,repo-b"
+  mapfile -t result < <(build_repo_list)
+  [ "${#result[@]}" -eq 2 ]
+  [ "${result[0]}" = "repo-a" ]
+  [ "${result[1]}" = "repo-b" ]
+}
+
+@test "build_repo_list file mode reads repos_file skipping comments and blanks" {
+  local tmpfile="$BATS_TMPDIR/repos_$$.txt"
+  printf '%s\n' "# comment" "repo-x" "" "  repo-y  " "# another comment" > "$tmpfile"
+  export REPO_SOURCE="file"
+  export REPOS_CSV=""
+  export REPOS_FILE="$tmpfile"
+  mapfile -t result < <(build_repo_list)
+  rm -f "$tmpfile"
+  [ "${#result[@]}" -eq 2 ]
+  [ "${result[0]}" = "repo-x" ]
+  [ "${result[1]}" = "repo-y" ]
+}
+
+@test "build_repo_list file mode returns empty when no CSV and no file" {
+  export REPO_SOURCE="file"
+  export REPOS_CSV=""
+  export REPOS_FILE="/nonexistent/repos.txt"
+  mapfile -t result < <(build_repo_list)
+  [ "${#result[@]}" -eq 0 ]
+}
+
+@test "build_repo_list defaults to file mode when REPO_SOURCE unset" {
+  unset REPO_SOURCE
+  export REPOS_CSV="default-repo"
+  mapfile -t result < <(build_repo_list)
+  [ "${#result[@]}" -eq 1 ]
+  [ "${result[0]}" = "default-repo" ]
+}
+
+@test "build_repo_list account mode returns repos from gh repo list" {
+  source "$BATS_TEST_DIRNAME/../test_helper/gh_mock.bash"
+  export REPO_SOURCE="account"
+  export OWNER="test-org"
+  export TRACKER_REPO=""
+  mapfile -t result < <(build_repo_list)
+  [ "${#result[@]}" -eq 3 ]
+  [ "${result[0]}" = "repo-a" ]
+}
+
+@test "build_repo_list account mode calls gh repo list with correct owner" {
+  export GH_MOCK_LOG="$BATS_TMPDIR/gh_mock_brl_$$.log"
+  rm -f "$GH_MOCK_LOG"
+  source "$BATS_TEST_DIRNAME/../test_helper/gh_mock.bash"
+  export REPO_SOURCE="account"
+  export OWNER="test-org"
+  export TRACKER_REPO=""
+  build_repo_list > /dev/null
+  grep -q "gh repo list test-org" "$GH_MOCK_LOG"
+  rm -f "$GH_MOCK_LOG"
+}
+
+@test "build_repo_list account mode excludes tracker repo" {
+  source "$BATS_TEST_DIRNAME/../test_helper/gh_mock.bash"
+  export GH_MOCK_REPO_LIST=$'repo-a\nrepo-b\ntracker'
+  export REPO_SOURCE="account"
+  export OWNER="test-org"
+  export TRACKER_REPO="test-org/tracker"
+  mapfile -t result < <(build_repo_list)
+  [ "${#result[@]}" -eq 2 ]
+  [[ " ${result[*]} " != *" tracker "* ]]
+}
+
+@test "build_repo_list returns error for invalid repo_source" {
+  export REPO_SOURCE="invalid"
+  run build_repo_list
+  [ "$status" -ne 0 ]
+}

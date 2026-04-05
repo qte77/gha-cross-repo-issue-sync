@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- `repo_source` input: choose between `file` (repos.txt/CSV) and `account` (auto-discover all repos for owner)
+- `include_forks` and `include_archived` inputs for account mode filtering
+- `build_repo_list` function in `common.sh` (extracted from action.yaml inline logic)
+- GitHub Projects board aggregation via `project_id` input (`add_to_project` in sync-pull.sh)
+
 ### Changed
 
 - Refactored test suite for strict TDD behavior-first compliance (92 → 104 tests)

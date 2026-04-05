@@ -69,3 +69,44 @@ build_pr_mirror_body() {
   local source_ref="$1"
   echo "Source: $source_ref (PR)"
 }
+
+# Build the list of repos to sync, one name per line on stdout.
+# Env vars: REPO_SOURCE (file|account), REPOS_CSV, REPOS_FILE, OWNER, TRACKER_REPO
+# Account mode env vars: INCLUDE_FORKS, INCLUDE_ARCHIVED (default: false)
+build_repo_list() {
+  local mode="${REPO_SOURCE:-file}"
+
+  case "$mode" in
+    file)
+      if [[ -n "${REPOS_CSV:-}" ]]; then
+        IFS=',' read -ra _repos <<< "$REPOS_CSV"
+        printf '%s\n' "${_repos[@]}"
+      elif [[ -f "${REPOS_FILE:-}" ]]; then
+        grep -v '^\s*#' "$REPOS_FILE" | grep -v '^\s*$' | xargs -L1
+      fi
+      ;;
+    account)
+      local jq_filter='.[] | .name'
+      [[ "${INCLUDE_ARCHIVED:-false}" != "true" ]] && jq_filter=".[] | select(.isArchived==false) | .name"
+      [[ "${INCLUDE_FORKS:-false}" != "true" ]] && jq_filter=".[] | select(.isFork==false)$(
+        [[ "${INCLUDE_ARCHIVED:-false}" != "true" ]] && echo " | select(.isArchived==false)"
+      ) | .name"
+
+      local tracker_name=""
+      [[ -n "${TRACKER_REPO:-}" ]] && tracker_name="${TRACKER_REPO##*/}"
+
+      local repos
+      repos="$(gh repo list "$OWNER" --limit 1000 --json name,isArchived,isFork --jq "$jq_filter")" || return 0
+
+      while IFS= read -r repo; do
+        [[ -z "$repo" ]] && continue
+        [[ -n "$tracker_name" && "$repo" == "$tracker_name" ]] && continue
+        echo "$repo"
+      done <<< "$repos"
+      ;;
+    *)
+      echo "Unknown repo_source: $mode" >&2
+      return 1
+      ;;
+  esac
+}
