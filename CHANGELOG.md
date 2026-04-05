@@ -8,16 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+### Removed
+
+- Reusable workflows — cross-repo `workflow_call` fails with `startup_failure` when caller has `default_workflow_permissions: read`
+
 ## [0.4.0] - 2026-04-05
 
 ### Added
 
-- Reusable workflows (`reusable-pull.yml`, `reusable-push.yml`) via `workflow_call`
-- Tracker repos only define triggers, reusable workflows handle checkout + action + commit
-
-### Changed
-
-- Integration tests refactored to call reusable workflows instead of composite action directly
+- Reusable workflows (`reusable-pull.yml`, `reusable-push.yml`) via `workflow_call` (removed in next release)
 
 ## [0.3.0] - 2026-04-05
 

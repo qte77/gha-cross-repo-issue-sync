@@ -122,55 +122,6 @@ jobs:
           token: ${{ secrets.PROJECT_TRACKER_PAT }}
 ```
 
-### Reusable workflows (recommended)
-
-Instead of calling the composite action directly, use the reusable workflows. They handle checkout, action invocation, and markdown commit — your tracker repo only defines triggers.
-
-```yaml
-# .github/workflows/sync-pull.yml  (in the tracker repo)
-name: Pull sync
-on:
-  schedule:
-    - cron: '*/15 * * * *'
-  workflow_dispatch:
-    inputs:
-      mode:
-        type: choice
-        options: [file, account, single]
-        default: file
-      repo:
-        required: false
-      owner:
-        default: your-org
-  repository_dispatch:
-    types: [sync-repo]
-jobs:
-  sync:
-    uses: qte77/gha-cross-repo-issue-sync/.github/workflows/reusable-pull.yml@v0
-    with:
-      tracker_repo: ${{ github.repository }}
-      repo_source: ${{ inputs.mode || 'file' }}
-      repos: ${{ inputs.repo || github.event.client_payload.repo || '' }}
-      owner: ${{ inputs.owner || github.repository_owner }}
-    secrets:
-      token: ${{ secrets.GH_PAT }}
-```
-
-```yaml
-# .github/workflows/sync-push.yml  (in the tracker repo)
-name: Push sync
-on:
-  issues:
-    types: [closed, reopened, edited, labeled, unlabeled, assigned, unassigned]
-  issue_comment:
-    types: [created]
-jobs:
-  sync:
-    uses: qte77/gha-cross-repo-issue-sync/.github/workflows/reusable-push.yml@v0
-    secrets:
-      token: ${{ secrets.GH_PAT }}
-```
-
 ## Inputs
 
 | Input | Required | Default | Description |

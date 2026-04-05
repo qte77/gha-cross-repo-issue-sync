@@ -33,14 +33,6 @@ setup() {
   [ -f "$REPO_ROOT/.github/workflows/integration.yml" ]
 }
 
-@test "Reusable pull sync workflow exists" {
-  [ -f "$REPO_ROOT/.github/workflows/reusable-pull.yml" ]
-}
-
-@test "Reusable push sync workflow exists" {
-  [ -f "$REPO_ROOT/.github/workflows/reusable-push.yml" ]
-}
-
 @test "CodeQL security scanning workflow exists" {
   [ -f "$REPO_ROOT/.github/workflows/codeql.yml" ]
 }
