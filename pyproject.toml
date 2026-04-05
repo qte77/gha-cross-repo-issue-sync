@@ -23,3 +23,8 @@ replace = "# version: {new_version}"
 filename = "CHANGELOG.md"
 search = "## [Unreleased]\n\n---"
 replace = "## [Unreleased]\n\n---\n\n## [{new_version}] - {now:%Y-%m-%d}"
+
+[[tool.bumpversion.files]]
+filename = "README.md"
+search = "badge/version-{current_version}-8A2BE2"
+replace = "badge/version-{new_version}-8A2BE2"
