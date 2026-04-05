@@ -18,12 +18,14 @@ Bidirectional GitHub issue sync across repos. Composite GitHub Action.
 ### Pull sync (scheduled — repos → tracker)
 
 ```yaml
-# .github/workflows/sync-pull.yml
+# .github/workflows/sync-pull.yml  (in the tracker repo)
 name: Pull sync
 on:
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
+  repository_dispatch:
+    types: [sync-repo]
 permissions:
   contents: write
   issues: write
@@ -37,6 +39,8 @@ jobs:
           direction: pull
           tracker_repo: owner/.github-private-project-tracker
           repos_file: repos.txt
+          # Override with single repo from dispatch payload
+          repos: ${{ github.event.client_payload.repo || '' }}
           token: ${{ secrets.PROJECT_TRACKER_PAT }}
       - name: Commit markdown
         run: |
@@ -73,10 +77,33 @@ jobs:
           token: ${{ secrets.PROJECT_TRACKER_PAT }}
 ```
 
+### Event-driven pull sync (instant — source repo → tracker)
+
+For low-latency sync, add this workflow to each source repo. On issue events it fires `repository_dispatch` to the tracker repo, triggering an immediate pull sync for that single repo.
+
+```yaml
+# .github/workflows/notify-tracker.yml  (in each source repo)
+name: Notify tracker
+on:
+  issues:
+    types: [opened, closed, reopened, edited, labeled, unlabeled, assigned, unassigned]
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - run: |
+          gh api repos/owner/.github-private-project-tracker/dispatches \
+            -f event_type=sync-repo \
+            -f 'client_payload[repo]=${{ github.event.repository.name }}'
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TRACKER_PAT }}
+```
+
 ### Push sync (event-driven — tracker → repos)
 
 ```yaml
-# .github/workflows/sync-push.yml
+# .github/workflows/sync-push.yml  (in the tracker repo)
 name: Push sync
 on:
   issues:
@@ -111,6 +138,10 @@ jobs:
 | `project_id` | No | — | GitHub Projects board ID |
 | `generate_markdown` | No | `true` | Generate TODO.md/DONE.md |
 | `dry_run` | No | `false` | Preview without changes |
+| `event_action` | No | `github.event.action` | Issue event action (push sync) |
+| `event_issue_number` | No | — | Issue number that triggered the event (push sync) |
+| `event_label` | No | — | Label name from labeled/unlabeled event (push sync) |
+| `event_assignee` | No | — | Assignee login from assigned/unassigned event (push sync) |
 
 ## How it works
 
