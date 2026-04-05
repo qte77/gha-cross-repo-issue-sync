@@ -97,9 +97,11 @@ build_repo_list() {
       ) | .name"
 
       local repos api_err
-      # Try user endpoint first, fall back to org endpoint
-      repos="$(gh api "users/$OWNER/repos?per_page=100" --paginate --jq "$jq_filter" 2>/tmp/gh_api_err)" \
-        || repos="$(gh api "orgs/$OWNER/repos?per_page=100" --paginate --jq "$jq_filter" 2>/tmp/gh_api_err)" \
+      # Use GITHUB_TOKEN (default runner token) for repo listing — PAT may lack metadata:read.
+      # GH_TOKEN takes precedence in gh CLI, so override it explicitly for this call.
+      local list_token="${GITHUB_TOKEN:-$GH_TOKEN}"
+      repos="$(GH_TOKEN="$list_token" gh api "users/$OWNER/repos?per_page=100" --paginate --jq "$jq_filter" 2>/tmp/gh_api_err)" \
+        || repos="$(GH_TOKEN="$list_token" gh api "orgs/$OWNER/repos?per_page=100" --paginate --jq "$jq_filter" 2>/tmp/gh_api_err)" \
         || { api_err="$(cat /tmp/gh_api_err 2>/dev/null)"; echo "::warning::account mode failed: $api_err" >&2; return 0; }
 
       while IFS= read -r repo; do
