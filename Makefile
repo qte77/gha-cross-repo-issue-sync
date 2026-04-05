@@ -1,10 +1,27 @@
 # Makefile for gha-cross-repo-issue-sync development.
-# Run `make help` to see all available recipes.
+# Run `make` to see all available recipes.
+
+# Require GNU Make >= 3.82 (.ONESHELL support)
+ifeq ($(filter oneshell,$(.FEATURES)),)
+$(error GNU Make >= 3.82 required (.ONESHELL). macOS ships 3.81 — install via: brew install make, then use gmake)
+endif
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev test lint clean help
+.PHONY: \
+	setup_dev \
+	test lint validate \
+	clean \
+	help
 .DEFAULT_GOAL := help
+
+# -- quiet mode (default: quiet; set VERBOSE=1 for full output) --
+VERBOSE ?= 0
+ifeq ($(VERBOSE),0)
+  BATS_FILTER := | grep -v '^ok '
+else
+  BATS_FILTER :=
+endif
 
 
 # MARK: SETUP
@@ -27,11 +44,13 @@ setup_dev:  ## Install dev dependencies (bats, shellcheck, actionlint)
 # MARK: QUALITY
 
 
-test:  ## Run all BATS tests
-	bats tests/unit/
+test:  ## Run all BATS tests (VERBOSE=1 for full output)
+	bats tests/unit/ $(BATS_FILTER)
 
 lint:  ## Run shellcheck on scripts
 	shellcheck scripts/*.sh
+
+validate: lint test  ## Full validation (lint + test)
 
 
 # MARK: CLEANUP
