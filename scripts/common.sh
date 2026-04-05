@@ -96,8 +96,11 @@ build_repo_list() {
         [[ "${INCLUDE_ARCHIVED:-false}" != "true" ]] && echo " | select(.archived==false)"
       ) | .name"
 
-      local repos
-      repos="$(gh api "users/$OWNER/repos" --paginate --jq "$jq_filter" 2>/dev/null)" || return 0
+      local repos api_err
+      # Try user endpoint first, fall back to org endpoint
+      repos="$(gh api "users/$OWNER/repos?per_page=100" --paginate --jq "$jq_filter" 2>/tmp/gh_api_err)" \
+        || repos="$(gh api "orgs/$OWNER/repos?per_page=100" --paginate --jq "$jq_filter" 2>/tmp/gh_api_err)" \
+        || { api_err="$(cat /tmp/gh_api_err 2>/dev/null)"; echo "::warning::account mode failed: $api_err" >&2; return 0; }
 
       while IFS= read -r repo; do
         [[ -z "$repo" ]] && continue
