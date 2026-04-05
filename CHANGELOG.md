@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.4.4] - 2026-04-05
+
 ## [0.4.3] - 2026-04-05
 
 ## [0.4.2] - 2026-04-05
