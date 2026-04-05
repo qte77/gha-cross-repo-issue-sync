@@ -174,8 +174,8 @@ Tracker repo (mirror issues + TODO.md + DONE.md)
 
 | Scope | Why |
 |---|---|
-| Issues (read+write) on tracked repos | Forward: read. Reverse: write. |
-| Issues (read+write) on tracker repo | Forward: create/edit mirrors |
+| Issues (read+write) on tracked repos | Pull: read. Push: write. |
+| Issues (read+write) on tracker repo | Pull: create/edit mirrors |
 | Contents (write) on tracker repo | Commit TODO.md/DONE.md |
 | `read:org` + `project` ([classic PAT][gh-pat-classic], optional) | Projects board aggregation (org-owned projects only) |
 
