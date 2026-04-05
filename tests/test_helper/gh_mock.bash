@@ -38,13 +38,6 @@ gh() {
         echo "[]"
       fi
       ;;
-    "repo list")
-      if [[ -n "${GH_MOCK_REPO_LIST:-}" ]]; then
-        echo "$GH_MOCK_REPO_LIST"
-      else
-        printf '%s\n' "repo-a" "repo-b" "repo-c"
-      fi
-      ;;
     "issue view")
       if [[ -n "${GH_MOCK_ISSUE_JSON:-}" ]]; then
         echo "$GH_MOCK_ISSUE_JSON"
@@ -55,8 +48,15 @@ gh() {
     "project item-add") echo "" ;;
     "api "*)
       local args="$*"
+      # Return mock repos for account mode
+      if [[ "$args" == *"/repos"* && "$args" != *"/comments"* ]]; then
+        if [[ -n "${GH_MOCK_REPO_LIST:-}" ]]; then
+          echo "$GH_MOCK_REPO_LIST"
+        else
+          printf '%s\n' "repo-a" "repo-b" "repo-c"
+        fi
       # Return mock comments for issue API calls
-      if [[ "$args" == *"/comments"* ]]; then
+      elif [[ "$args" == *"/comments"* ]]; then
         if [[ "$args" == *"$GH_MOCK_TRACKER_REPO"* && -n "${GH_MOCK_MIRROR_COMMENTS:-}" ]]; then
           echo "$GH_MOCK_MIRROR_COMMENTS"
         elif [[ -n "${GH_MOCK_SOURCE_COMMENTS:-}" ]]; then

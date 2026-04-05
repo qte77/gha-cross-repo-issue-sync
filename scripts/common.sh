@@ -86,17 +86,18 @@ build_repo_list() {
       fi
       ;;
     account)
-      local jq_filter='.[] | .name'
-      [[ "${INCLUDE_ARCHIVED:-false}" != "true" ]] && jq_filter=".[] | select(.isArchived==false) | .name"
-      [[ "${INCLUDE_FORKS:-false}" != "true" ]] && jq_filter=".[] | select(.isFork==false)$(
-        [[ "${INCLUDE_ARCHIVED:-false}" != "true" ]] && echo " | select(.isArchived==false)"
-      ) | .name"
-
       local tracker_name=""
       [[ -n "${TRACKER_REPO:-}" ]] && tracker_name="${TRACKER_REPO##*/}"
 
+      # Use REST API (works with fine-grained PATs, unlike gh repo list which needs GraphQL)
+      local jq_filter='.[] | .name'
+      [[ "${INCLUDE_ARCHIVED:-false}" != "true" ]] && jq_filter=".[] | select(.archived==false) | .name"
+      [[ "${INCLUDE_FORKS:-false}" != "true" ]] && jq_filter=".[] | select(.fork==false)$(
+        [[ "${INCLUDE_ARCHIVED:-false}" != "true" ]] && echo " | select(.archived==false)"
+      ) | .name"
+
       local repos
-      repos="$(gh repo list "$OWNER" --limit 1000 --json name,isArchived,isFork --jq "$jq_filter")" || return 0
+      repos="$(gh api "users/$OWNER/repos" --paginate --jq "$jq_filter" 2>/dev/null)" || return 0
 
       while IFS= read -r repo; do
         [[ -z "$repo" ]] && continue

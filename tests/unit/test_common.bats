@@ -197,7 +197,7 @@ setup() {
   [ "${result[0]}" = "default-repo" ]
 }
 
-@test "build_repo_list account mode returns repos from gh repo list" {
+@test "build_repo_list account mode returns repos from REST API" {
   source "$BATS_TEST_DIRNAME/../test_helper/gh_mock.bash"
   export REPO_SOURCE="account"
   export OWNER="test-org"
@@ -207,7 +207,7 @@ setup() {
   [ "${result[0]}" = "repo-a" ]
 }
 
-@test "build_repo_list account mode calls gh repo list with correct owner" {
+@test "build_repo_list account mode calls REST API with correct owner" {
   export GH_MOCK_LOG="$BATS_TMPDIR/gh_mock_brl_$$.log"
   rm -f "$GH_MOCK_LOG"
   source "$BATS_TEST_DIRNAME/../test_helper/gh_mock.bash"
@@ -215,7 +215,7 @@ setup() {
   export OWNER="test-org"
   export TRACKER_REPO=""
   build_repo_list > /dev/null
-  grep -q "gh repo list test-org" "$GH_MOCK_LOG"
+  grep -q "gh api users/test-org/repos" "$GH_MOCK_LOG"
   rm -f "$GH_MOCK_LOG"
 }
 
