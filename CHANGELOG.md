@@ -6,34 +6,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+---
+
 ### Added
 
 - `repo_source` input: choose between `file` (repos.txt/CSV) and `account` (auto-discover all repos for owner)
 - `include_forks` and `include_archived` inputs for account mode filtering
 - `build_repo_list` function in `common.sh` (extracted from action.yaml inline logic)
 - GitHub Projects board aggregation via `project_id` input (`add_to_project` in sync-pull.sh)
-- Integration dry-run workflow (`integration.yml`) — smoke tests file and account modes on every PR
-- Event-driven pull sync via `repository_dispatch` — instant single-repo sync from source repos
+- Integration dry-run workflow (`integration.yml`) — smoke tests file and account modes
+- Event-driven pull sync via `repository_dispatch` — instant single-repo sync
+- `Makefile` with `setup_dev`, `test`, `lint`, `clean` recipes
 
 ### Changed
 
-- Refactored test suite for strict TDD behavior-first compliance (92 → 104 tests)
-- Refactored `test_infra_files.bats` from brittle content matching to contract tests
-- Added round-trip tests for `build_mirror_body` → `parse_source_ref`
-- Added dry-run preview message verification tests
-- Added multiline comment sync test
-- Added markdown format validation tests (checkbox format, section headers, multi-repo append)
+- Refactored test suite for strict TDD compliance (92 → 116 tests)
+- Refactored `test_infra_files.bats` to contract tests
 - Added error injection support to `gh_mock.bash` (`GH_MOCK_FAIL_CMD`)
-- Added error handling tests for `sync_repo` and `handle_issue_closed`
-- Added edge case tests for special characters in titles
+- Fixed stale forward/reverse terminology in README
+
+## [0.2.0] - 2026-03-30
 
 ### Added
 
-- `Makefile` with `setup_dev`, `test`, `lint`, `clean` recipes
+- PR sync: mirror PRs alongside issues with `pr:open`/`pr:merged`/`pr:closed` status labels
+- Forward comment sync from source repos to tracker mirrors
+- Auto-create repo label before mirror issue creation
+- Projects board auto-add documentation and API limitation notes
+- Signed commit pattern for bump-and-release via GitHub API
 
----
+### Changed
 
-## [0.2.0] - 2026-03-30
+- Renamed forward/reverse to pull/push throughout
+- Migrated license to Apache-2.0
+- Standardized repo scaffold (`.editorconfig`, `SECURITY.md`, `.gitattributes`)
+- Renamed `action.yml` to `action.yaml`, added version comment for bumpversion
+- Unset `GITHUB_TOKEN` so PAT takes precedence in GHA
+
+### Fixed
+
+- Sanitize event inputs, add CHANGELOG.md
+- Align cleanup test with script interface
 
 ## [0.1.0] - 2026-03-23
 
