@@ -29,6 +29,10 @@ setup() {
   [ -f "$REPO_ROOT/.github/workflows/bump-and-release.yml" ]
 }
 
+@test "Integration dry-run workflow exists" {
+  [ -f "$REPO_ROOT/.github/workflows/integration.yml" ]
+}
+
 @test "CodeQL security scanning workflow exists" {
   [ -f "$REPO_ROOT/.github/workflows/codeql.yml" ]
 }

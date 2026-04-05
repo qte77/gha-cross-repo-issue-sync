@@ -1,0 +1,46 @@
+name: Integration (dry-run)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  smoke-file-mode:
+    name: Dry-run pull sync (file mode)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Create test repos.txt
+        run: printf '%s\n' "gha-cross-repo-issue-sync" > repos.txt
+
+      - name: Run action (file mode, dry-run)
+        uses: ./
+        with:
+          direction: pull
+          tracker_repo: ${{ github.repository }}
+          repos_file: repos.txt
+          token: ${{ github.token }}
+          dry_run: 'true'
+
+  smoke-account-mode:
+    name: Dry-run pull sync (account mode)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run action (account mode, dry-run)
+        uses: ./
+        with:
+          direction: pull
+          tracker_repo: ${{ github.repository }}
+          repo_source: account
+          token: ${{ github.token }}
+          dry_run: 'true'
