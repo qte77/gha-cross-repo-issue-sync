@@ -4,10 +4,10 @@ Bidirectional GitHub issue sync across repos. Composite GitHub Action.
 
 ![Version](https://img.shields.io/badge/version-0.4.4-8A2BE2)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
-[![Tests](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/test.yml/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/test.yml)
 [![CodeFactor](https://www.codefactor.io/repository/github/qte77/gha-cross-repo-issue-sync/badge)](https://www.codefactor.io/repository/github/qte77/gha-cross-repo-issue-sync)
 [![CodeQL](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/codeql.yml/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/codeql.yml)
 [![Dependabot](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/dependabot/dependabot-updates)
+[![BATS](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/test.yml/badge.svg)](https://github.com/qte77/gha-cross-repo-issue-sync/actions/workflows/test.yml)
 
 - **Pull sync**: repo issues → tracker mirror issues + TODO.md/DONE.md
 - **Push sync**: tracker issue events → source repo (close, reopen, labels, assignees, title, comments)
@@ -124,7 +124,7 @@ jobs:
 
 ## Inputs
 
-| Input | Required | Default | Description |
+| Name | Required | Default | Description |
 |---|---|---|---|
 | `direction` | Yes | — | `pull` (repos→tracker), `push` (tracker→repos), or `both` |
 | `tracker_repo` | Yes | — | Tracker repo (`owner/repo`) |
@@ -151,17 +151,12 @@ Source repos (issues = SOT)
 Tracker repo (mirror issues + TODO.md + DONE.md)
 ```
 
-**Pull** (batch, scheduled): reads issues from all repos, creates/closes/updates mirrors, generates markdown.
-
-**Push** (event-driven, instant): fires on issue events in the tracker repo, propagates state changes back to source repos via `Source: owner/repo#N` reference in the mirror issue body.
-
-**Loop prevention**: bot actor check + comment prefix guards (`[source]`, `[tracker]`, `[sync-bot]`).
-
-**Tracker-only issues**: issues without a `Source:` ref are private to the tracker — visible in TODO.md under `## tracker`, ignored by push sync.
-
-**GitHub Projects board**: when `project_id` is set, pull sync automatically adds all open tracker issues to the board via `gh project item-add`. Alternatively, use the built-in [auto-add workflow][gh-auto-add]. The board reflects issue state (close → Done) but dragging cards does NOT change issue state — the GHA push sync handles that direction. See [adding items to projects][gh-add-items] for bulk import options.
-
-**Projects API limitations**: fine-grained PATs [do not support user-owned projects][gh-pat-projects] — only org-owned projects via [REST API][gh-projects-rest]. For user-owned projects, use the UI auto-add workflow or a [classic PAT with `project` scope][gh-pat-classic]. See [fine-grained PAT feature gaps][gh-pat-ga] for current status.
+1. **Pull sync** (batch, scheduled) reads issues from all tracked repos, creates/closes/updates mirror issues in the tracker, and generates TODO.md/DONE.md
+2. **Push sync** (event-driven, instant) fires on issue events in the tracker repo and propagates state changes back to source repos via the `Source: owner/repo#N` reference in the mirror issue body
+3. **Loop prevention** uses bot actor checks and comment prefix guards (`[source]`, `[tracker]`, `[sync-bot]`) to avoid infinite sync cycles
+4. **Tracker-only issues** (those without a `Source:` ref) remain private to the tracker, appear in TODO.md under `## tracker`, and are ignored by push sync
+5. **GitHub Projects board** integration (when `project_id` is set) automatically adds all open tracker issues to the board via `gh project item-add`. The board reflects issue state (close -> Done) but dragging cards does NOT change issue state — push sync handles that direction. See [adding items to projects][gh-add-items] for bulk import options
+6. **Projects API limitations**: fine-grained PATs [do not support user-owned projects][gh-pat-projects] — only org-owned projects via [REST API][gh-projects-rest]. For user-owned projects, use the UI [auto-add workflow][gh-auto-add] or a [classic PAT with `project` scope][gh-pat-classic]. See [fine-grained PAT feature gaps][gh-pat-ga] for current status
 
 [gh-auto-add]: https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/adding-items-automatically
 [gh-add-items]: https://docs.github.com/en/issues/planning-and-tracking-with-projects/managing-items-in-your-project/adding-items-to-your-project
@@ -195,4 +190,4 @@ bats tests/unit/test_sync_pull.bats
 
 ## License
 
-Apache-2.0
+[Apache-2.0](LICENSE)
