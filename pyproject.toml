@@ -20,8 +20,8 @@ search = "# version: {current_version}"
 replace = "# version: {new_version}"
 
 [[tool.bumpversion.files]]
-# Anchor on the sole '---' separator so notes authored under [Unreleased]
-# do not break the match. New version header is inserted after the separator.
+# Anchor on '---' separator (not '[Unreleased]\n\n---') so notes under
+# [Unreleased] don't break the match.
 filename = "CHANGELOG.md"
 regex = true
 search = "^---$"
