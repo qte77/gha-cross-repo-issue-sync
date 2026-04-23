@@ -20,9 +20,12 @@ search = "# version: {current_version}"
 replace = "# version: {new_version}"
 
 [[tool.bumpversion.files]]
+# Anchor on '---' separator (not '[Unreleased]\n\n---') so notes under
+# [Unreleased] don't break the match.
 filename = "CHANGELOG.md"
-search = "## [Unreleased]\n\n---"
-replace = "## [Unreleased]\n\n---\n\n## [{new_version}] - {now:%Y-%m-%d}"
+regex = true
+search = "^---$"
+replace = "---\n\n## [{new_version}] - {now:%Y-%m-%d}"
 
 [[tool.bumpversion.files]]
 filename = "README.md"
