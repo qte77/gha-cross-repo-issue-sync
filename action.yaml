@@ -110,6 +110,9 @@ runs:
 
         # Generate markdown
         if [[ "$GENERATE_MARKDOWN" == "true" ]]; then
+          # Clear prior output so repeated syncs don't append duplicate sections
+          reset_markdown "."
+
           # Fetch all tracker issues for markdown (mirrors + tracker-only)
           tracker_json="$(gh issue list -R "$TRACKER_REPO" --state all --limit 500 \
             --json number,title,body,state 2>/dev/null || echo "[]")"

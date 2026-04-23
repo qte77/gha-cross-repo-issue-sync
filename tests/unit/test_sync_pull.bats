@@ -201,6 +201,33 @@ gh_calls() {
   grep -q '## repo-b' "$MARKDOWN_DIR/TODO.md"
 }
 
+# --- reset_markdown ---
+
+@test "reset_markdown removes prior TODO.md and DONE.md" {
+  generate_markdown "$MARKDOWN_DIR" "repo-a" "$GH_MOCK_SOURCE_JSON"
+  [ -f "$MARKDOWN_DIR/TODO.md" ]
+  [ -f "$MARKDOWN_DIR/DONE.md" ]
+  reset_markdown "$MARKDOWN_DIR"
+  [ ! -f "$MARKDOWN_DIR/TODO.md" ]
+  [ ! -f "$MARKDOWN_DIR/DONE.md" ]
+}
+
+@test "reset_markdown + generate_markdown twice produces single section per repo" {
+  # First sync
+  generate_markdown "$MARKDOWN_DIR" "repo-a" "$GH_MOCK_SOURCE_JSON"
+  # Second sync — caller must reset first
+  reset_markdown "$MARKDOWN_DIR"
+  generate_markdown "$MARKDOWN_DIR" "repo-a" "$GH_MOCK_SOURCE_JSON"
+  # Exactly one '## repo-a' header, exactly one '# TODO' header
+  [ "$(grep -c '^## repo-a$' "$MARKDOWN_DIR/TODO.md")" -eq 1 ]
+  [ "$(grep -c '^# TODO$' "$MARKDOWN_DIR/TODO.md")" -eq 1 ]
+}
+
+@test "reset_markdown is safe when files do not exist" {
+  reset_markdown "$MARKDOWN_DIR"
+  [ ! -f "$MARKDOWN_DIR/TODO.md" ]
+}
+
 # --- sync_mirror_comments ---
 
 @test "sync_mirror_comments syncs new source comment to mirror" {

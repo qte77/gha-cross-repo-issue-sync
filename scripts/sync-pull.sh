@@ -315,6 +315,14 @@ sync_mirror_comments() {
   done < <(echo "$src_comments" | jq -c '.[]')
 }
 
+# Remove any prior TODO.md / DONE.md in the output dir so a fresh sync run
+# starts with an empty file instead of appending a new section to stale output.
+# Args: $1 = output dir
+reset_markdown() {
+  local out_dir="$1"
+  rm -f "$out_dir/TODO.md" "$out_dir/DONE.md"
+}
+
 # Generate TODO.md and DONE.md from issues JSON.
 # Args: $1 = output dir, $2 = repo name (empty = tracker-only), $3 = issues JSON
 generate_markdown() {
