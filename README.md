@@ -50,7 +50,7 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m "chore: sync TODO/DONE"
           git push
-```
+```python
 
 ### Pull sync with account mode (all repos for owner)
 
@@ -98,7 +98,7 @@ jobs:
             -f 'client_payload[repo]=${{ github.event.repository.name }}'
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TRACKER_PAT }}
-```
+```python
 
 ### Push sync (event-driven — tracker → repos)
 
@@ -145,7 +145,7 @@ jobs:
 
 ## How it works
 
-```
+```text
 Source repos (issues = SOT)
     ↕ bidirectional sync
 Tracker repo (mirror issues + TODO.md + DONE.md)
@@ -186,7 +186,7 @@ bats tests/unit/
 bats tests/unit/test_common.bats
 bats tests/unit/test_sync_push.bats
 bats tests/unit/test_sync_pull.bats
-```
+```text
 
 ## License
 
