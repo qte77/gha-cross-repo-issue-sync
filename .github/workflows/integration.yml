@@ -16,7 +16,7 @@ jobs:
     name: Dry-run pull sync (file mode)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Create test repos.txt
         run: printf '%s\n' "gha-cross-repo-issue-sync" > repos.txt
@@ -34,7 +34,7 @@ jobs:
     name: Dry-run pull sync (account mode)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Run action (account mode, dry-run)
         uses: ./
