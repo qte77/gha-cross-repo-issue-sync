@@ -145,7 +145,7 @@ jobs:
 
 ## How it works
 
-```
+```text
 Source repos (issues = SOT)
     ↕ bidirectional sync
 Tracker repo (mirror issues + TODO.md + DONE.md)
