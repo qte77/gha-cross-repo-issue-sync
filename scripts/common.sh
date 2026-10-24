@@ -26,6 +26,17 @@ split_source_ref() {
   esac
 }
 
+# Resolve a repos.txt entry to owner/repo.
+# Entries containing "/" are used as-is (cross-org); bare names get OWNER prefixed.
+qualify_repo() {
+  local repo="$1"
+  if [[ "$repo" == */* ]]; then
+    echo "$repo"
+  else
+    echo "$OWNER/$repo"
+  fi
+}
+
 # Check if an event should be skipped to prevent sync loops.
 # Returns 0 (true) if loop detected, 1 (false) if safe.
 is_loop() {

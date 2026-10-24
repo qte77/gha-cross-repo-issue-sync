@@ -15,7 +15,7 @@ inputs:
     description: 'Tracker repo (e.g. owner/.github-private-project-tracker)'
     required: true
   repos_file:
-    description: 'Path to repos.txt (one repo name per line). Used for pull sync.'
+    description: 'Path to repos.txt (one per line: repo name, or owner/repo for another owner). Used for pull sync.'
     required: false
     default: 'repos.txt'
   repos:
@@ -118,7 +118,7 @@ runs:
             --json number,title,body,state 2>/dev/null || echo "[]")"
 
           for repo in "${repos[@]}"; do
-            repo_json="$(gh issue list -R "$OWNER/$repo" --state all --limit 200 \
+            repo_json="$(gh issue list -R "$(qualify_repo "$repo")" --state all --limit 200 \
               --json number,title,state 2>/dev/null || echo "[]")"
             generate_markdown "." "$repo" "$repo_json"
           done

@@ -55,6 +55,18 @@ setup() {
   [ -z "$result" ]
 }
 
+# --- qualify_repo ---
+
+@test "qualify_repo prefixes bare repo name with OWNER" {
+  OWNER="qte77" result="$(qualify_repo "my-repo")"
+  [ "$result" = "qte77/my-repo" ]
+}
+
+@test "qualify_repo keeps owner/repo entry as-is" {
+  OWNER="qte77" result="$(qualify_repo "other-org/their-repo")"
+  [ "$result" = "other-org/their-repo" ]
+}
+
 # --- is_loop ---
 
 @test "is_loop returns 0 for github-actions[bot] actor" {

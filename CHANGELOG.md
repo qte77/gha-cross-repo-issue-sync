@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- Pull sync: `repos.txt` / `repos` entries may be `owner/repo` for cross-org tracking; bare names
+  are still prefixed with `owner`
+
 ---
 
 ## [0.4.4] - 2026-04-05

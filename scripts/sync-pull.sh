@@ -114,11 +114,12 @@ sync_mirror_assignees() {
 # Sync a single repo's issues to tracker mirrors.
 # Args: $1 = repo name
 sync_repo() {
-  local repo="$1"
+  local repo="$1" full_repo
+  full_repo="$(qualify_repo "$repo")"
 
   # Fetch source issues
   local source_json
-  source_json="$(gh issue list -R "$OWNER/$repo" --state all --limit 200 \
+  source_json="$(gh issue list -R "$full_repo" --state all --limit 200 \
     --json number,title,state,labels,assignees 2>/dev/null || echo "[]")"
 
   # Fetch existing mirrors
@@ -132,7 +133,7 @@ sync_repo() {
     src_num="$(echo "$issue" | jq -r '.number')"
     src_title="$(echo "$issue" | jq -r '.title')"
     src_state="$(echo "$issue" | jq -r '.state')"
-    src_ref="$OWNER/$repo#$src_num"
+    src_ref="$full_repo#$src_num"
 
     local mirror_num
     mirror_num="$(find_mirror_for_ref "$src_ref" "$mirror_json")"
@@ -176,7 +177,7 @@ sync_repo() {
         fi
 
         # Sync comments
-        sync_mirror_comments "$src_num" "$mirror_num" "$OWNER/$repo"
+        sync_mirror_comments "$src_num" "$mirror_num" "$full_repo"
       fi
     elif [[ "$src_state" == "CLOSED" ]]; then
       if [[ -n "$mirror_num" && "$mirror_state" == "OPEN" ]]; then
@@ -220,11 +221,12 @@ update_pr_status_label() {
 # Sync a single repo's PRs to tracker mirrors.
 # Args: $1 = repo name
 sync_repo_prs() {
-  local repo="$1"
+  local repo="$1" full_repo
+  full_repo="$(qualify_repo "$repo")"
 
   # Fetch source PRs
   local pr_json
-  pr_json="$(gh pr list -R "$OWNER/$repo" --state all --limit 200 \
+  pr_json="$(gh pr list -R "$full_repo" --state all --limit 200 \
     --json number,title,state,labels,assignees 2>/dev/null || echo "[]")"
 
   # Fetch existing mirrors (includes PR mirrors)
@@ -240,7 +242,7 @@ sync_repo_prs() {
     pr_num="$(echo "$pr" | jq -r '.number')"
     pr_title="$(echo "$pr" | jq -r '.title')"
     pr_state="$(echo "$pr" | jq -r '.state')"
-    pr_ref="$OWNER/$repo#$pr_num"
+    pr_ref="$full_repo#$pr_num"
 
     # Find existing mirror by PR ref in body (includes "(PR)" marker)
     local mirror_num mirror_state
