@@ -211,8 +211,9 @@ update_pr_status_label() {
 
   # Remove other status labels
   for other in "pr:open" "pr:merged" "pr:closed"; do
-    [[ "$other" != "$status_label" ]] && \
+    if [[ "$other" != "$status_label" ]]; then
       gh issue edit "$mirror_num" -R "$TRACKER_REPO" --remove-label "$other" 2>/dev/null || true
+    fi
   done
 }
 
