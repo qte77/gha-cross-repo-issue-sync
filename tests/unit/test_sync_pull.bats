@@ -140,6 +140,20 @@ gh_calls() {
   [ "$create_count" -eq 1 ]
 }
 
+@test "sync_repo uses owner/repo entry without prefixing OWNER" {
+  sync_repo "other-org/test-repo"
+  gh_calls | grep -q "gh issue list -R other-org/test-repo "
+  ! gh_calls | grep -q "qte77/other-org"
+  gh_calls | grep -q "Source: other-org/test-repo#2"
+}
+
+@test "sync_repo_prs uses owner/repo entry without prefixing OWNER" {
+  export GH_MOCK_PR_JSON='[{"number":5,"title":"Add widget","state":"OPEN","labels":[],"assignees":[]}]'
+  sync_repo_prs "other-org/test-repo"
+  gh_calls | grep -q "gh pr list -R other-org/test-repo "
+  gh_calls | grep -q "Source: other-org/test-repo#5 (PR)"
+}
+
 # --- sync_repo dry run ---
 
 @test "sync_repo in dry-run does not call gh issue create/close" {
