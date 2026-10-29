@@ -27,7 +27,7 @@ jobs:
       - uses: qte77/gha-cross-repo-issue-sync@v1
         with:
           direction: pull
-          tracker_repo: owner/.github-private-project-tracker
+          tracker_repo: owner/project-tracker
           repos_file: repos.txt
           # Override with single repo from dispatch payload
           repos: ${{ github.event.client_payload.repo || '' }}
@@ -62,7 +62,7 @@ jobs:
       - uses: qte77/gha-cross-repo-issue-sync@v1
         with:
           direction: pull
-          tracker_repo: owner/.github-private-project-tracker
+          tracker_repo: owner/project-tracker
           repo_source: account
           token: ${{ secrets.PROJECT_TRACKER_PAT }}
 ```
@@ -84,7 +84,7 @@ jobs:
     if: github.actor != 'github-actions[bot]'
     steps:
       - run: |
-          gh api repos/owner/.github-private-project-tracker/dispatches \
+          gh api repos/owner/project-tracker/dispatches \
             -f event_type=sync-repo \
             -f 'client_payload[repo]=${{ github.event.repository.name }}'
         env:

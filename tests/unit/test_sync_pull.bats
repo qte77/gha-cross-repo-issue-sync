@@ -8,7 +8,7 @@ FIXTURES="$BATS_TEST_DIRNAME/../fixtures"
 setup() {
   export TMPDIR="${BATS_TMPDIR:-/tmp/claude-1000/bats-tmp}"
   export GH_MOCK_LOG="$BATS_TMPDIR/gh_mock_$$.log"
-  export GH_MOCK_TRACKER_REPO="qte77/.github-private-project-tracker"
+  export GH_MOCK_TRACKER_REPO="qte77/project-tracker"
   export TRACKER_REPO="$GH_MOCK_TRACKER_REPO"
   export OWNER="qte77"
   export MARKDOWN_DIR="$BATS_TMPDIR/md_$$"
