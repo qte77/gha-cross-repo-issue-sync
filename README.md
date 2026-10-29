@@ -33,7 +33,7 @@ jobs:
       - uses: qte77/gha-cross-repo-issue-sync@v1
         with:
           direction: pull
-          tracker_repo: owner/.github-private-project-tracker
+          tracker_repo: owner/project-tracker
           repos_file: repos.txt
           generate_markdown: 'false'
           token: ${{ secrets.PROJECT_TRACKER_PAT }}
