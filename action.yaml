@@ -12,7 +12,7 @@ inputs:
     description: 'Sync direction: pull (repos→tracker), push (tracker→repos), or both'
     required: true
   tracker_repo:
-    description: 'Tracker repo (e.g. owner/.github-private-project-tracker)'
+    description: 'Tracker repo (e.g. owner/project-tracker)'
     required: true
   repos_file:
     description: 'Path to repos.txt (one per line: repo name, or owner/repo for another owner). Used for pull sync.'
