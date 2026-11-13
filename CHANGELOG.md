@@ -11,6 +11,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Pull sync: `repos.txt` / `repos` entries may be `owner/repo` for cross-org tracking; bare names
   are still prefixed with `owner`
 
+### Security
+
+- Pin all `uses:` refs in `.github/workflows/*` to full-length commit SHAs (`actions/checkout`,
+  `github/codeql-action/init`, `github/codeql-action/analyze`, `callowayproject/bump-my-version`),
+  with the prior tag kept as a trailing comment
+- `.github/dependabot.yml`: group `github-actions` updates (`codeql-action`,
+  `actions-security-updates`, `actions-version-updates`) so related PRs land together and majors
+  stay separate
+
 ---
 
 ## [0.5.0] - 2026-11-09
