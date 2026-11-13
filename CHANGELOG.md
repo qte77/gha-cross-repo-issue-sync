@@ -22,6 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ---
 
+## [0.5.0] - 2026-11-09
+
 ## [0.4.4] - 2026-04-05
 
 ## [0.4.3] - 2026-04-05
