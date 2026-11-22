@@ -11,6 +11,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Pull sync: `repos.txt` / `repos` entries may be `owner/repo` for cross-org tracking; bare names
   are still prefixed with `owner`
 
+### Changed
+
+- Claude Code `.claude/settings.json` sets `BASH_MAX_OUTPUT_LENGTH` to `15000`
+  and `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` to `50`
+  ([docs](https://code.claude.com/docs/en/env-vars))
+
 ### Security
 
 - Pin all `uses:` refs in `.github/workflows/*` to full-length commit SHAs (`actions/checkout`,
