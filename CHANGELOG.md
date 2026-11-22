@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Security
 
+- Bump workflow passes `github.ref_name`, step outputs and workflow env values through `env:` and quotes them as shell variables instead of expanding `${{ }}` inside `run:`, closing the zizmor `template-injection` findings
 - Pin all `uses:` refs in `.github/workflows/*` to full-length commit SHAs (`actions/checkout`,
   `github/codeql-action/init`, `github/codeql-action/analyze`, `callowayproject/bump-my-version`),
   with the prior tag kept as a trailing comment
