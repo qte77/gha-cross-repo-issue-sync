@@ -49,8 +49,9 @@ jobs:
           BRANCH: ${{ env.BRANCH_NEW }}
           VERSION: ${{ steps.bump.outputs.current-version }}
           PREV_VERSION: ${{ steps.bump.outputs.previous-version }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          BASE_SHA=$(gh api "repos/$REPO/git/ref/heads/${{ github.ref_name }}" --jq '.object.sha')
+          BASE_SHA=$(gh api "repos/$REPO/git/ref/heads/$REF_NAME" --jq '.object.sha')
           BASE_TREE=$(gh api "repos/$REPO/git/commits/$BASE_SHA" --jq '.tree.sha')
 
           TREE_ENTRIES="[]"
@@ -77,22 +78,25 @@ jobs:
 
           gh api "repos/$REPO/git/refs" -f ref="refs/tags/v$VERSION" -f sha="$COMMIT_SHA"
 
-          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+          echo "commit_sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Create PR
         if: steps.bump.outputs.bumped == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT_VERSION: ${{ steps.bump.outputs.current-version }}
+          PREVIOUS_VERSION: ${{ steps.bump.outputs.previous-version }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          tag_current="v${{ steps.bump.outputs.current-version }}"
-          tag_previous="v${{ steps.bump.outputs.previous-version }}"
-          pr_title="PR ${{ env.BRANCH_NEW }} ${{ env.SKIP_PR_HINT }}"
-          pr_body="PR automatically created from \`${{ github.ref_name }}\` to bump from"
-          pr_body="${pr_body} \`${tag_previous}\` to \`${tag_current}\` on \`${{ env.BRANCH_NEW }}\`."
+          tag_current="v${CURRENT_VERSION}"
+          tag_previous="v${PREVIOUS_VERSION}"
+          pr_title="PR ${BRANCH_NEW} ${SKIP_PR_HINT}"
+          pr_body="PR automatically created from \`${REF_NAME}\` to bump from"
+          pr_body="${pr_body} \`${tag_previous}\` to \`${tag_current}\` on \`${BRANCH_NEW}\`."
 
           gh pr create \
-            --base "${{ github.ref_name }}" \
-            --head "${{ env.BRANCH_NEW }}" \
+            --base "${REF_NAME}" \
+            --head "${BRANCH_NEW}" \
             --title "${pr_title}" \
             --body "${pr_body}"
 
@@ -113,9 +117,11 @@ jobs:
         if: failure() || cancelled()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          CURRENT_VERSION: ${{ steps.bump.outputs.current-version }}
         run: |
-          src="${{ env.SCRIPT_PATH }}/delete_branch_pr_tag.sh"
+          src="${SCRIPT_PATH}/delete_branch_pr_tag.sh"
           chmod +x "$src"
-          $src "${{ github.repository }}" "${{ env.BRANCH_NEW }}" "${{ steps.bump.outputs.current-version }}"
+          "$src" "$REPO" "$BRANCH_NEW" "$CURRENT_VERSION"
 
 ...
