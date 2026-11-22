@@ -11,6 +11,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Pull sync: `repos.txt` / `repos` entries may be `owner/repo` for cross-org tracking; bare names
   are still prefixed with `owner`
 
+### Changed
+
+- Claude Code `.claude/settings.json` sets `BASH_MAX_OUTPUT_LENGTH` to `15000`
+  and `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` to `50`
+  ([docs](https://code.claude.com/docs/en/env-vars))
+
 ### Security
 
 - Bump workflow passes `github.ref_name`, step outputs and workflow env values through `env:` and quotes them as shell variables instead of expanding `${{ }}` inside `run:`, closing the zizmor `template-injection` findings
