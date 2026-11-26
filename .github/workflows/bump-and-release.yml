@@ -1,5 +1,11 @@
 ---
-name: Bump and Release
+name: Bump version
+
+# Step 1 of the release flow (file name kept for existing references). Thin caller of the
+# qte77/.github reusable: bumps the files listed under [tool.bumpversion] in pyproject.toml
+# (pyproject, action.yaml version comment, CHANGELOG release block, README badge), makes
+# one signed commit on a bump branch and opens a PR. Tag, GitHub Release and the floating
+# major tag follow in tag-release.yml once that PR is merged to main.
 
 on:
   workflow_dispatch:
@@ -10,118 +16,21 @@ on:
         default: 'patch'
         type: choice
         options:
-        - 'major'
-        - 'minor'
-        - 'patch'
+          - 'major'
+          - 'minor'
+          - 'patch'
 
-env:
-  BRANCH_NEW: "bump-${{ github.run_number }}-${{ github.ref_name }}"
-  SKIP_PR_HINT: "[skip ci bump]"
-  SCRIPT_PATH: ".github/scripts"
+permissions:
+  contents: read
 
 jobs:
-  bump_my_version:
-    runs-on: ubuntu-latest
+  bump:
+    uses: qte77/.github/.github/workflows/bump-version.yml@aeef158fdd62a865aecd03571eaecbe3aa8169e4  # v0.1.2
     permissions:
-      actions: read
-      checks: write
       contents: write
       pull-requests: write
-    steps:
-
-      - name: Checkout repo
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          fetch-depth: 1
-
-      - name: Bump version (files only, no commit/tag)
-        id: bump
-        uses: callowayproject/bump-my-version@22dbc5c88dba0ce5552078b48278d96467264b6d  # 1.8.1
-        with:
-          args: ${{ inputs.bump_type }}
-
-      - name: Create signed commit and push branch
-        if: steps.bump.outputs.bumped == 'true'
-        id: signed_commit
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          BRANCH: ${{ env.BRANCH_NEW }}
-          VERSION: ${{ steps.bump.outputs.current-version }}
-          PREV_VERSION: ${{ steps.bump.outputs.previous-version }}
-          REF_NAME: ${{ github.ref_name }}
-        run: |
-          BASE_SHA=$(gh api "repos/$REPO/git/ref/heads/$REF_NAME" --jq '.object.sha')
-          BASE_TREE=$(gh api "repos/$REPO/git/commits/$BASE_SHA" --jq '.tree.sha')
-
-          TREE_ENTRIES="[]"
-          for file in $(git diff --name-only); do
-            CONTENT=$(base64 -w0 "$file")
-            BLOB_SHA=$(gh api "repos/$REPO/git/blobs" -f content="$CONTENT" -f encoding=base64 --jq '.sha')
-            TREE_ENTRIES=$(echo "$TREE_ENTRIES" | jq --arg path "$file" --arg sha "$BLOB_SHA" \
-              '. + [{"path": $path, "mode": "100644", "type": "blob", "sha": $sha}]')
-          done
-
-          NEW_TREE=$(gh api "repos/$REPO/git/trees" \
-            --input <(jq -n --arg base "$BASE_TREE" --argjson tree "$TREE_ENTRIES" \
-              '{base_tree: $base, tree: $tree}') \
-            --jq '.sha')
-
-          COMMIT_SHA=$(gh api "repos/$REPO/git/commits" \
-            --input <(jq -n --arg msg "Bump version: $PREV_VERSION -> $VERSION" \
-              --arg tree "$NEW_TREE" --arg parent "$BASE_SHA" \
-              '{message: $msg, tree: $tree, parents: [$parent]}') \
-            --jq '.sha')
-
-          gh api "repos/$REPO/git/refs/heads/$BRANCH" -X PATCH -f sha="$COMMIT_SHA" -F force=true 2>/dev/null \
-            || gh api "repos/$REPO/git/refs" -f ref="refs/heads/$BRANCH" -f sha="$COMMIT_SHA"
-
-          gh api "repos/$REPO/git/refs" -f ref="refs/tags/v$VERSION" -f sha="$COMMIT_SHA"
-
-          echo "commit_sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
-
-      - name: Create PR
-        if: steps.bump.outputs.bumped == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CURRENT_VERSION: ${{ steps.bump.outputs.current-version }}
-          PREVIOUS_VERSION: ${{ steps.bump.outputs.previous-version }}
-          REF_NAME: ${{ github.ref_name }}
-        run: |
-          tag_current="v${CURRENT_VERSION}"
-          tag_previous="v${PREVIOUS_VERSION}"
-          pr_title="PR ${BRANCH_NEW} ${SKIP_PR_HINT}"
-          pr_body="PR automatically created from \`${REF_NAME}\` to bump from"
-          pr_body="${pr_body} \`${tag_previous}\` to \`${tag_current}\` on \`${BRANCH_NEW}\`."
-
-          gh pr create \
-            --base "${REF_NAME}" \
-            --head "${BRANCH_NEW}" \
-            --title "${pr_title}" \
-            --body "${pr_body}"
-
-      - name: Create release and update floating tag
-        if: steps.bump.outputs.bumped == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: v${{ steps.bump.outputs.current-version }}
-          REPO: ${{ github.repository }}
-        run: |
-          gh release create "$TAG" --repo "$REPO" --generate-notes
-          MAJOR="${TAG%%.*}"
-          SHA=$(gh api "repos/$REPO/git/refs/tags/$TAG" --jq '.object.sha')
-          gh api "repos/$REPO/git/refs/tags/$MAJOR" -X PATCH -f sha="$SHA" -F force=true 2>/dev/null \
-            || gh api "repos/$REPO/git/refs" -f ref="refs/tags/$MAJOR" -f sha="$SHA"
-
-      - name: Delete branch, PR and tag in case of failure or cancel
-        if: failure() || cancelled()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          CURRENT_VERSION: ${{ steps.bump.outputs.current-version }}
-        run: |
-          src="${SCRIPT_PATH}/delete_branch_pr_tag.sh"
-          chmod +x "$src"
-          "$src" "$REPO" "$BRANCH_NEW" "$CURRENT_VERSION"
-
+    with:
+      bump_type: ${{ inputs.bump_type }}
+      # Same bump-my-version release the inline workflow used (callowayproject/bump-my-version 1.8.1).
+      bump_my_version_pin: "1.8.1"
 ...

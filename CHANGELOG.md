@@ -16,6 +16,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Claude Code `.claude/settings.json` sets `BASH_MAX_OUTPUT_LENGTH` to `15000`
   and `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` to `50`
   ([docs](https://code.claude.com/docs/en/env-vars))
+- Release flow moved to the `qte77/.github` reusables, pinned to the v0.1.2 tag commit (`@aeef158f…  # v0.1.2`)
+  (#79): `bump-and-release.yml` now only bumps (signed bump commit, bump PR); the new `tag-release.yml` tags
+  `vX.Y.Z`, publishes the Release and moves the floating major tag once the bump PR is merged to `main`; the new
+  `publish-release.yml` re-publishes a given `vX.Y.Z` tag on dispatch. Tag and Release are no longer created on the
+  unmerged bump branch.
+
+### Removed
+
+- `.github/scripts/delete_branch_pr_tag.sh` and its tests: the old bump workflow was its only caller, and it
+  deleted release tags on failure, which burns the version for good (qte77/.github#23).
 
 ### Security
 
