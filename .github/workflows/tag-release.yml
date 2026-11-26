@@ -1,0 +1,59 @@
+---
+name: Tag Release
+
+# Step 2 of the release flow, on the bump PR's merge to main: tag vX.Y.Z (annotated,
+# never overwritten or deleted), publish the GitHub Release, then move the floating
+# major tag (v<major>) to the released commit.
+
+on:
+  push:
+    branches: [main]
+    paths: [pyproject.toml]
+
+permissions:
+  contents: read
+
+# Serialize release runs (shared with publish-release.yml) so an older run can never
+# move v<major> backward. The reusables define no concurrency group of their own.
+concurrency:
+  group: release-tags
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    uses: qte77/.github/.github/workflows/tag-release.yml@aeef158fdd62a865aecd03571eaecbe3aa8169e4  # v0.1.2
+    permissions:
+      contents: write
+
+  publish:
+    # Publish in the same run: a tag pushed with GITHUB_TOKEN starts no `on: push: tags`
+    # workflow. Skipped when this push created no tag (version line unchanged).
+    needs: tag
+    if: needs.tag.outputs.tag != ''
+    uses: qte77/.github/.github/workflows/publish-release.yml@aeef158fdd62a865aecd03571eaecbe3aa8169e4  # v0.1.2
+    permissions:
+      contents: write
+    with:
+      tag: ${{ needs.tag.outputs.tag }}
+
+  move-floating-major-tag:
+    # None of the three reusables maintains a floating major tag, so this repo moves it.
+    needs: [tag, publish]
+    if: needs.tag.outputs.tag != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Move v<major> to the tag's commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ needs.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::not a release tag: $TAG"; exit 1; }
+          MAJOR="${TAG%%.*}"
+          SHA=$(gh api "repos/$REPO/commits/$TAG" --jq '.sha')
+          gh api "repos/$REPO/git/refs/tags/$MAJOR" -X PATCH -f sha="$SHA" -F force=true 2>/dev/null \
+            || gh api "repos/$REPO/git/refs" -f ref="refs/tags/$MAJOR" -f sha="$SHA"
+...
